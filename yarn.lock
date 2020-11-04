@@ -1266,6 +1266,11 @@
   resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.6.2.tgz#49707fc4e06649d39d6b25bdab2e9093d372ce50"
   integrity sha512-kUVUvrqttndeprLoXjI5arWHeiP3uh4XODAKbG+ZaWHCVQeelxCbnXBeWxZ2BPHdXgH0xR9dU1b916JhDhbgAA==
 
+"@symblox/pooltogether-rng-contracts@^1.0.0":
+  version "1.0.0-symblox.1"
+  resolved "https://registry.yarnpkg.com/@symblox/pooltogether-rng-contracts/-/pooltogether-rng-contracts-1.0.0-symblox.1.tgz#4df8514491f010c8271bd6bc1b413258d65d0165"
+  integrity sha512-W51Y6qMHdFNQmd31DGbd2/Zj9pmbrYlIuYjl0Yxto6+GQCngx0ZfURRcy5WZjpgYPNCZoB8gc4nhixBWvL/lZQ==
+
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@szmarczak/http-timer/-/http-timer-1.1.2.tgz#b1665e2c461a2cd92f4c1bbf50d5454de0d4b421"

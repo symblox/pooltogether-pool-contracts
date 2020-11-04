@@ -1,49 +1,67 @@
 const networks = require('./buidler.networks')
 
-const {TASK_COMPILE_GET_COMPILER_INPUT} = require("@nomiclabs/buidler/builtin-tasks/task-names");
+const { TASK_COMPILE_GET_COMPILER_INPUT } = require('@nomiclabs/buidler/builtin-tasks/task-names')
 
 const RNGBlockhashRopsten = require('@pooltogether/pooltogether-rng-contracts/deployments/ropsten/RNGBlockhash.json')
 const RNGBlockhashRinkeby = require('@pooltogether/pooltogether-rng-contracts/deployments/rinkeby/RNGBlockhash.json')
 const RNGBlockhashKovan = require('@pooltogether/pooltogether-rng-contracts/deployments/kovan/RNGBlockhash.json')
+const RNGBlockhashVlxTest = require('@symblox/pooltogether-rng-contracts/deployments/vlxtest/RNGBlockhash.json')
 
-usePlugin("@nomiclabs/buidler-waffle");
-usePlugin("buidler-gas-reporter");
-usePlugin("solidity-coverage");
-usePlugin("@nomiclabs/buidler-etherscan");
-usePlugin("buidler-deploy");
+usePlugin('@nomiclabs/buidler-waffle')
+usePlugin('buidler-gas-reporter')
+usePlugin('solidity-coverage')
+usePlugin('@nomiclabs/buidler-etherscan')
+usePlugin('buidler-deploy')
 
 // This must occur after buidler-deploy!
 task(TASK_COMPILE_GET_COMPILER_INPUT).setAction(async (_, __, runSuper) => {
-  const input = await runSuper();
-  input.settings.metadata.useLiteralContent = process.env.USE_LITERAL_CONTENT != 'false';
+  const input = await runSuper()
+  input.settings.metadata.useLiteralContent = process.env.USE_LITERAL_CONTENT != 'false'
   console.log(`useLiteralContent: ${input.settings.metadata.useLiteralContent}`)
-  return input;
+  return input
 })
 
-const testnetAdmin = '0xE0F4217390221aF47855E094F6e112D43C8698fE' // Account 1
-const testnetUser1 = '0xeedDf4937E3A7aBe03E08963C3c20affbD770b51' // Account 3
-const testnetUser2 = '0xcE53382F96FdE0DB592574ed2571B3307dB859Ce' // Account 4
-const testnetUser3 = '0x381843c8b4a4a0Da3C0800708c84AA2d792D22b1' // Account 5
+task('accounts', 'Prints the list of accounts', async () => {
+  const walletMnemonic = ethers.Wallet.fromMnemonic(process.env.HDWALLET_MNEMONIC)
+  console.log(walletMnemonic.address)
+})
+
+// task('balance', "Prints an account's balance")
+//   .addParam('account', "The account's address")
+//   .setAction(async taskArgs => {
+//     const provider = new ethers.providers.JsonRpcProvider()
+//     const walletMnemonic = ethers.Wallet.fromMnemonic(process.env.HDWALLET_MNEMONIC)
+//     console.log(walletMnemonic.address)
+//     const wallet = walletMnemonic.connect(provider)
+//     const balance = await wallet.getBalance()
+
+//     console.log(ethers.utils.parseEther(balance), 'ETH')
+//   })
+
+const testnetAdmin = '0xFC32E7c7c55391ebb4F91187c91418bF96860cA9' // Account 1
+const testnetUser1 = '0xFC32E7c7c55391ebb4F91187c91418bF96860cA9' // Account 3
+const testnetUser2 = '0xFC32E7c7c55391ebb4F91187c91418bF96860cA9' // Account 4
+const testnetUser3 = '0xFC32E7c7c55391ebb4F91187c91418bF96860cA9' // Account 5
 
 const optimizerEnabled = !process.env.OPTIMIZER_DISABLED
 
 const config = {
   solc: {
-    version: "0.6.12",
+    version: '0.6.12',
     optimizer: {
       enabled: optimizerEnabled,
       runs: 200
     },
-    evmVersion: "istanbul"
+    evmVersion: 'istanbul'
   },
   paths: {
-    artifacts: "./build"
+    artifacts: './build'
   },
   networks,
   gasReporter: {
     currency: 'CHF',
     gasPrice: 21,
-    enabled: (process.env.REPORT_GAS) ? true : false
+    enabled: process.env.REPORT_GAS ? true : false
   },
   namedAccounts: {
     deployer: {
@@ -56,6 +74,7 @@ const config = {
       1: '0xa530F85085C6FE2f866E7FdB716849714a89f4CD'
     },
     rng: {
+      111: RNGBlockhashVlxTest.address,
       42: RNGBlockhashKovan.address,
       4: RNGBlockhashRinkeby.address,
       3: RNGBlockhashRopsten.address
@@ -69,26 +88,29 @@ const config = {
       default: testnetUser1,
       3: testnetUser1,
       4: testnetUser1,
-      42: testnetUser1,
+      42: testnetUser1
     },
     testnetUser2: {
       default: testnetUser2,
       3: testnetUser2,
       4: testnetUser2,
-      42: testnetUser2,
+      42: testnetUser2
     },
     testnetUser3: {
       default: testnetUser3,
       3: testnetUser3,
       4: testnetUser3,
-      42: testnetUser3,
-    },
+      42: testnetUser3
+    }
   },
   etherscan: {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     apiKey: process.env.ETHERSCAN_API_KEY
+  },
+  analytics: {
+    enabled: false
   }
-};
+}
 
 module.exports = config

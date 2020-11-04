@@ -20,7 +20,7 @@
     "console": "buidler console --network",
     "coverage": "rm -rf build cache test-results.xml && USE_LITERAL_CONTENT=false buidler coverage --network coverage --temp build",
     "gas": "REPORT_GAS=true buidler test --network localhost",
-    "deploy": "buidler deploy --write true --network",
+    "deploy": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler deploy --write true --network",
     "deploy-drips": "buidler run ./js/deployDripTokens.js --network",
     "testnet-txs": "buidler run ./js/runTestnetTransactions.js --network",
     "etherscan-verify": "buidler run ./scripts/verify.js --network",
@@ -29,7 +29,8 @@
     "prepack": "rm -rf build cache && buidler compile && truffle-extract -b build -o abis",
     "postpublish": "PACKAGE_VERSION=$(./scripts/package-version.sh) && git tag -ae v$PACKAGE_VERSION && git push --tags",
     "update-gitbook-networks": "./scripts/update-gitbook-networks.sh",
-    "mint": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run --network localhost scripts/mint.js"
+    "mint": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run --network localhost scripts/mint.js",
+    "setup": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/setup.js --network "
   },
   "dependencies": {
     "@opengsn/gsn": "^2.0.1",
@@ -37,6 +38,7 @@
     "@pooltogether/fixed-point": "pooltogether/fixed-point.git#0.1.0-upgradeable.1",
     "@pooltogether/pooltogether-rng-contracts": "^1.0.0",
     "@pooltogether/uniform-random-number": "pooltogether/uniform-random-number#solidity-0.6",
+    "@symblox/pooltogether-rng-contracts": "^1.0.0",
     "deploy-eip-1820": "1.0.0",
     "sortition-sum-tree-factory": "0.1.0"
   },

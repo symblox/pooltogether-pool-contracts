@@ -1,4 +1,4 @@
-const { deployments } = require("@nomiclabs/buidler");
+const { deployments } = require('@nomiclabs/buidler')
 const { expect } = require('chai')
 const buidler = require('@nomiclabs/buidler')
 const { ethers } = require('ethers')
@@ -10,46 +10,39 @@ const TokenListenerInterface = require('../build/TokenListenerInterface.json')
 const toWei = ethers.utils.parseEther
 
 describe('StakePrizePoolBuilder', () => {
-
   let wallet
 
   let builder
 
-  let reserveRegistry,
-      trustedForwarder,
-      singleRandomWinnerBuilder,
-      stakePrizePoolProxyFactory,
-      rngServiceMock,
-      token
+  let reserveRegistry, trustedForwarder, singleRandomWinnerBuilder, stakePrizePoolProxyFactory, rngServiceMock, token
 
-  let singleRandomWinnerConfig,
-      stakePrizePoolConfig
+  let singleRandomWinnerConfig, stakePrizePoolConfig
 
   beforeEach(async () => {
-    [wallet] = await buidler.ethers.getSigners()
+    ;[wallet] = await buidler.ethers.getSigners()
     await deployments.fixture()
     builder = await buidler.ethers.getContractAt(
-      "StakePrizePoolBuilder",
-      (await deployments.get("StakePrizePoolBuilder")).address,
+      'StakePrizePoolBuilder',
+      (await deployments.get('StakePrizePoolBuilder')).address,
       wallet
     )
 
-    reserveRegistry = (await deployments.get("ReserveRegistry"))
-    trustedForwarder = (await deployments.get("TrustedForwarder"))
-    singleRandomWinnerBuilder = (await deployments.get("SingleRandomWinnerBuilder"))
-    stakePrizePoolProxyFactory = (await deployments.get("StakePrizePoolProxyFactory"))
-    rngServiceMock = (await deployments.get("RNGServiceMock"))
-    token = (await deployments.get("Dai"))
+    reserveRegistry = await deployments.get('ReserveRegistry')
+    trustedForwarder = await deployments.get('TrustedForwarder')
+    singleRandomWinnerBuilder = await deployments.get('SingleRandomWinnerBuilder')
+    stakePrizePoolProxyFactory = await deployments.get('StakePrizePoolProxyFactory')
+    rngServiceMock = await deployments.get('RNGServiceMock')
+    token = await deployments.get('Dai')
 
     singleRandomWinnerConfig = {
       proxyAdmin: AddressZero,
       rngService: rngServiceMock.address,
       prizePeriodStart: 20,
       prizePeriodSeconds: 10,
-      ticketName: "Ticket",
-      ticketSymbol: "TICK",
-      sponsorshipName: "Sponsorship",
-      sponsorshipSymbol: "SPON",
+      ticketName: 'Ticket',
+      ticketSymbol: 'TICK',
+      sponsorshipName: 'Sponsorship',
+      sponsorshipSymbol: 'SPON',
       ticketCreditLimitMantissa: toWei('0.1'),
       ticketCreditRateMantissa: toWei('0.001'),
       externalERC20Awards: []
@@ -60,7 +53,6 @@ describe('StakePrizePoolBuilder', () => {
       maxExitFeeMantissa: toWei('0.5'),
       maxTimelockDuration: 1000
     }
-
   })
 
   describe('initialize()', () => {
@@ -108,8 +100,16 @@ describe('StakePrizePoolBuilder', () => {
       let events = await getEvents(tx)
       let prizePoolCreatedEvent = events.find(e => e.name == 'PrizePoolCreated')
 
-      const prizePool = await buidler.ethers.getContractAt('StakePrizePool', prizePoolCreatedEvent.args.prizePool, wallet)
-      const prizeStrategy = await buidler.ethers.getContractAt('SingleRandomWinnerHarness', await prizePool.prizeStrategy(), wallet)
+      const prizePool = await buidler.ethers.getContractAt(
+        'StakePrizePool',
+        prizePoolCreatedEvent.args.prizePool,
+        wallet
+      )
+      const prizeStrategy = await buidler.ethers.getContractAt(
+        'SingleRandomWinnerHarness',
+        await prizePool.prizeStrategy(),
+        wallet
+      )
       const ticketAddress = await prizeStrategy.ticket()
       const sponsorshipAddress = await prizeStrategy.sponsorship()
 
