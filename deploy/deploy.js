@@ -85,6 +85,14 @@ module.exports = async buidler => {
     })
     rng = rngServiceMockResult.address
 
+    debug('\n  Deploying WVLX...')
+    const wvlxResult = await deploy('WVLX', {
+      args: [],
+      contract: 'WVLX',
+      from: deployer,
+      skipIfAlreadyDeployed: true
+    })
+
     debug('\n  Deploying Dai...')
     const daiResult = await deploy('Dai', {
       args: ['DAI Test Token', 'DAI'],
@@ -115,6 +123,7 @@ module.exports = async buidler => {
     debug('  - TrustedForwarder: ', trustedForwarder)
     debug('  - RNGService:       ', rng)
     debug('  - Dai:              ', daiResult.address)
+    debug('  - WVLX:             ', wvlxResult.address)
   }
 
   let comptrollerAddress = comptroller

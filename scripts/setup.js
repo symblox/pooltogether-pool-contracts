@@ -12,9 +12,12 @@ async function getEvents(tx) {
 }
 
 const setup = async () => {
-  const { ethers } = buidler
+  const { ethers, getChainId } = buidler
   const { AddressZero } = ethers.constants
   const toWei = ethers.utils.parseEther
+
+  const chainId = parseInt(await getChainId(), 10)
+  const isTestEnvironment = chainId === 31337 || chainId === 1337 || chainId === 111
 
   ;[wallet] = await ethers.getSigners()
   console.log(`Using wallet address: ${wallet._address}`)
@@ -26,7 +29,21 @@ const setup = async () => {
     wallet
   )
   rngServiceMock = await deployments.get('RNGServiceMock')
-  token = await deployments.get('Dai')
+  //token = await deployments.get('Dai')
+  token = await deployments.get('WVLX')
+
+  // const Dai = await ethers.getContractAt(
+  //   'ERC20Mintable',
+  //   token.address,
+  //   wallet
+  // )
+
+  // if(isTestEnvironment){
+  //   let amount = '10000'
+  //   const [signer] = await ethers.getSigners()
+  //   console.log(`Minting ${amount} Dai(${Dai.address}) to ${signer._address}...`)
+  //   await Dai.mint(signer._address, ethers.utils.parseEther(amount))
+  // }
 
   singleRandomWinnerConfig = {
     proxyAdmin: AddressZero,

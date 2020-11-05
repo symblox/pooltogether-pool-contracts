@@ -2,26 +2,25 @@
 
 pragma solidity >=0.6.0 <0.7.0;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/SafeCast.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol";
+import '@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts-ethereum-package/contracts/utils/SafeCast.sol';
+import '@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol';
+import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol';
+import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol';
 
-import "../external/pooltogether/FixedPoint.sol";
-import "../reserve/ReserveInterface.sol";
-import "./YieldSource.sol";
-import "../token/TokenListenerInterface.sol";
-import "../token/ControlledToken.sol";
-import "../token/TokenControllerInterface.sol";
-import "../utils/MappedSinglyLinkedList.sol";
-import "../utils/RelayRecipient.sol";
+import '../external/pooltogether/FixedPoint.sol';
+import '../reserve/ReserveInterface.sol';
+import './YieldSource.sol';
+import '../token/TokenListenerInterface.sol';
+import '../token/ControlledToken.sol';
+import '../token/TokenControllerInterface.sol';
+import '../utils/MappedSinglyLinkedList.sol';
+import '../utils/RelayRecipient.sol';
 
 /// @title Escrows assets and deposits them into a yield source.  Exposes interest to Prize Strategy.  Users deposit and withdraw from this contract to participate in Prize Pool.
 /// @notice Accounting is managed using Controlled Tokens, whose mint and burn functions can only be called by this contract.
 /// @dev Must be inherited to provide specific yield-bearing asset control, such as Compound cTokens
 interface PrizePoolInterface {
-
   /// @notice Deposit assets into the Prize Pool in exchange for tokens
   /// @param to The address receiving the newly minted tokens
   /// @param amount The amount of assets to deposit
@@ -32,8 +31,7 @@ interface PrizePoolInterface {
     uint256 amount,
     address controlledToken,
     address referrer
-  )
-    external;
+  ) external payable;
 
   /// @notice Withdraw assets from the Prize Pool instantly.  A fairness fee may be charged for an early exit.
   /// @param from The address to redeem tokens from.
@@ -84,8 +82,7 @@ interface PrizePoolInterface {
     address to,
     uint256 amount,
     address controlledToken
-  )
-    external;
+  ) external;
 
   /// @notice Called by the Prize-Strategy to transfer out external ERC20 tokens
   /// @dev Used to transfer out tokens held by the Prize Pool.  Could be liquidated, or anything.
@@ -96,8 +93,7 @@ interface PrizePoolInterface {
     address to,
     address externalToken,
     uint256 amount
-  )
-    external;
+  ) external;
 
   /// @notice Called by the Prize-Strategy to award external ERC20 prizes
   /// @dev Used to award any arbitrary tokens held by the Prize Pool
@@ -108,8 +104,7 @@ interface PrizePoolInterface {
     address to,
     address externalToken,
     uint256 amount
-  )
-    external;
+  ) external;
 
   /// @notice Called by the prize strategy to award external ERC721 prizes
   /// @dev Used to award any arbitrary NFTs held by the Prize Pool
@@ -120,17 +115,12 @@ interface PrizePoolInterface {
     address to,
     address externalToken,
     uint256[] calldata tokenIds
-  )
-    external;
+  ) external;
 
   /// @notice Sweep all timelocked balances and transfer unlocked assets to owner accounts
   /// @param users An array of account addresses to sweep balances for
   /// @return The total amount of assets swept from the Prize Pool
-  function sweepTimelockBalances(
-    address[] calldata users
-  )
-    external
-    returns (uint256);
+  function sweepTimelockBalances(address[] calldata users) external returns (uint256);
 
   /// @notice Calculates a timelocked withdrawal duration and credit consumption.
   /// @param from The user who is withdrawing
@@ -141,12 +131,7 @@ interface PrizePoolInterface {
     address from,
     address controlledToken,
     uint256 amount
-  )
-    external
-    returns (
-      uint256 durationSeconds,
-      uint256 burnedCredit
-    );
+  ) external returns (uint256 durationSeconds, uint256 burnedCredit);
 
   /// @notice Calculates the early exit fee for the given amount
   /// @param from The user who is withdrawing
@@ -158,12 +143,7 @@ interface PrizePoolInterface {
     address from,
     address controlledToken,
     uint256 amount
-  )
-    external
-    returns (
-      uint256 exitFee,
-      uint256 burnedCredit
-    );
+  ) external returns (uint256 exitFee, uint256 burnedCredit);
 
   /// @notice Estimates the amount of time it will take for a given amount of funds to accrue the given amount of credit.
   /// @param _principal The principal amount on which interest is accruing
@@ -173,10 +153,7 @@ interface PrizePoolInterface {
     address _controlledToken,
     uint256 _principal,
     uint256 _interest
-  )
-    external
-    view
-    returns (uint256 durationSeconds);
+  ) external view returns (uint256 durationSeconds);
 
   /// @notice Returns the credit balance for a given user.  Not that this includes both minted credit and pending credit.
   /// @param user The user whose credit balance should be returned
@@ -191,22 +168,16 @@ interface PrizePoolInterface {
     address _controlledToken,
     uint128 _creditRateMantissa,
     uint128 _creditLimitMantissa
-  )
-    external;
+  ) external;
 
   /// @notice Returns the credit rate of a controlled token
   /// @param controlledToken The controlled token to retrieve the credit rates for
   /// @return creditLimitMantissa The credit limit fraction.  This number is used to calculate both the credit limit and early exit fee.
   /// @return creditRateMantissa The credit rate. This is the amount of tokens that accrue per second.
-  function creditPlanOf(
-    address controlledToken
-  )
+  function creditPlanOf(address controlledToken)
     external
     view
-    returns (
-      uint128 creditLimitMantissa,
-      uint128 creditRateMantissa
-    );
+    returns (uint128 creditLimitMantissa, uint128 creditRateMantissa);
 
   /// @notice Allows the Governor to set a cap on the amount of liquidity that he pool can hold
   /// @param _liquidityCap The new liquidity cap for the prize pool
