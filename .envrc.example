@@ -12,3 +12,7 @@ export BUIDLER_EVM_ACCOUNTS='0x1234 0x4321 0x999'
 
 # Required for forking
 export ALCHEMY_URL=''
+
+export VELAS_TEST_RPC='https://explorer.testnet.veladev.net/rpc'
+
+export VELAS_RPC='https://explorer.velas.com/rpc'
