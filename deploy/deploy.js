@@ -187,6 +187,12 @@ module.exports = async buidler => {
     skipIfAlreadyDeployed: true
   })
 
+  debug('\n  Deploying SyxPrizePoolProxyFactory...')
+  const syxPrizePoolProxyFactoryResult = await deploy('SyxPrizePoolProxyFactory', {
+    from: deployer,
+    skipIfAlreadyDeployed: true
+  })
+
   debug('\n  Deploying ControlledTokenBuilder...')
   const controlledTokenBuilderResult = await deploy('ControlledTokenBuilder', {
     args: [trustedForwarder, controlledTokenProxyFactoryResult.address, ticketProxyFactoryResult.address],
@@ -194,26 +200,26 @@ module.exports = async buidler => {
     skipIfAlreadyDeployed: true
   })
 
-  debug('\n  Deploying SingleRandomWinnerProxyFactory...')
-  let singleRandomWinnerProxyFactoryResult
+  debug('\n  Deploying SingleRandomWinnerCoinFactory...')
+  let singleRandomWinnerCoinFactoryResult
   if (isTestEnvironment && !harnessDisabled) {
     debug('\n  Deploying SingleRandomWinnerHarnessProxyFactory...')
-    singleRandomWinnerProxyFactoryResult = await deploy('SingleRandomWinnerProxyFactory', {
+    singleRandomWinnerCoinFactoryResult = await deploy('SingleRandomWinnerCoinFactory', {
       contract: 'SingleRandomWinnerHarnessProxyFactory',
       from: deployer,
       skipIfAlreadyDeployed: true
     })
   } else {
-    singleRandomWinnerProxyFactoryResult = await deploy('SingleRandomWinnerProxyFactory', {
+    singleRandomWinnerCoinFactoryResult = await deploy('SingleRandomWinnerCoinFactory', {
       from: deployer,
       skipIfAlreadyDeployed: true
     })
   }
 
-  debug('\n  Deploying SingleRandomWinnerBuilder...')
-  const singleRandomWinnerBuilderResult = await deploy('SingleRandomWinnerBuilder', {
+  debug('\n  Deploying SingleRandomWinnerCoinBuilder...')
+  const singleRandomWinnerBuilderResult = await deploy('SingleRandomWinnerCoinBuilder', {
     args: [
-      singleRandomWinnerProxyFactoryResult.address,
+      singleRandomWinnerCoinFactoryResult.address,
       trustedForwarder,
       controlledTokenProxyFactoryResult.address,
       ticketProxyFactoryResult.address
@@ -234,6 +240,20 @@ module.exports = async buidler => {
     skipIfAlreadyDeployed: true
   })
 
+  debug('\n  Deploying SyxPrizePoolBuilder...')
+  const syxPrizePoolBuilderResult = await deploy('SyxPrizePoolBuilder', {
+    args: [
+      reserveRegistryResult.address,
+      trustedForwarder,
+      syxPrizePoolProxyFactoryResult.address,
+      singleRandomWinnerBuilderResult.address
+    ],
+    from: deployer,
+    skipIfAlreadyDeployed: true
+  })
+
+  
+
   // Display Contract Addresses
   debug('\n  Contract Deployments Complete!\n')
   debug('  - TicketProxyFactory:             ', ticketProxyFactoryResult.address)
@@ -241,12 +261,14 @@ module.exports = async buidler => {
   // debug('  - Comptroller:                    ', comptrollerAddress)
   // debug('  - CompoundPrizePoolProxyFactory:  ', compoundPrizePoolProxyFactoryResult.address)
   debug('  - ControlledTokenProxyFactory:    ', controlledTokenProxyFactoryResult.address)
-  debug('  - SingleRandomWinnerProxyFactory: ', singleRandomWinnerProxyFactoryResult.address)
+  debug('  - SingleRandomWinnerCoinFactory: ', singleRandomWinnerCoinFactoryResult.address)
   debug('  - ControlledTokenBuilder:         ', controlledTokenBuilderResult.address)
   debug('  - SingleRandomWinnerBuilder:      ', singleRandomWinnerBuilderResult.address)
   // debug('  - CompoundPrizePoolBuilder:       ', compoundPrizePoolBuilderResult.address)
   // debug('  - yVaultPrizePoolBuilder:         ', yVaultPrizePoolBuilderResult.address)
   debug('  - StakePrizePoolBuilder:          ', stakePrizePoolBuilderResult.address)
+  debug('  - SyxPrizePoolBuilder:          ', syxPrizePoolBuilderResult.address)
+  
   // if (permitAndDepositDaiResult) {
   //   debug('  - PermitAndDepositDai:            ', permitAndDepositDaiResult.address)
   // }

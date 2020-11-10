@@ -7,7 +7,6 @@ import '@openzeppelin/contracts-ethereum-package/contracts/utils/SafeCast.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/utils/ReentrancyGuard.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC721/IERC721.sol';
 import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol';
 
 import '../external/pooltogether/FixedPoint.sol';
 import '../registry/RegistryInterface.sol';
@@ -19,10 +18,6 @@ import '../token/TokenControllerInterface.sol';
 import '../utils/MappedSinglyLinkedList.sol';
 import '../utils/RelayRecipient.sol';
 import './PrizePoolInterface.sol';
-
-interface IWvlx {
-  function withdraw(uint256 wad) external;
-}
 
 /// @title Escrows assets and deposits them into a yield source.  Exposes interest to Prize Strategy.  Users deposit and withdraw from this contract to participate in Prize Pool.
 /// @notice Accounting is managed using Controlled Tokens, whose mint and burn functions can only be called by this contract.
@@ -38,7 +33,6 @@ abstract contract PrizePool is
   using SafeMath for uint256;
   using SafeCast for uint256;
   using SafeERC20 for IERC20;
-  using Address for address payable;
   using MappedSinglyLinkedList for MappedSinglyLinkedList.Mapping;
 
   /// @dev Emitted when an instance is initialized
@@ -237,84 +231,39 @@ abstract contract PrizePool is
     emit TimelockDeposited(operator, to, controlledToken, amount);
   }
 
-  // /// @notice Deposit assets into the Prize Pool in exchange for tokens
-  // /// @param to The address receiving the newly minted tokens
-  // /// @param amount The amount of assets to deposit
-  // /// @param controlledToken The address of the type of token the user is minting
-  // /// @param referrer The referrer of the deposit
-  // function depositTo(
-  //   address to,
-  //   uint256 amount,
-  //   address controlledToken,
-  //   address referrer
-  // ) external override onlyControlledToken(controlledToken) canAddLiquidity(amount) nonReentrant {
-  //   address operator = _msgSender();
-
-  //   _mint(to, amount, controlledToken, referrer);
-
-  //   _token().safeTransferFrom(operator, address(this), amount);
-  //   _supply(amount);
-
-  //   emit Deposited(operator, to, controlledToken, amount, referrer);
-  // }
-
+  /// @notice Deposit assets into the Prize Pool in exchange for tokens
+  /// @param to The address receiving the newly minted tokens
+  /// @param amount The amount of assets to deposit
+  /// @param controlledToken The address of the type of token the user is minting
+  /// @param referrer The referrer of the deposit
   function depositTo(
     address to,
     uint256 amount,
     address controlledToken,
     address referrer
-  ) external override payable onlyControlledToken(controlledToken) canAddLiquidity(amount) nonReentrant {
-    require(amount == msg.value, 'PrizePool/invalid-amount');
+  ) external override onlyControlledToken(controlledToken) canAddLiquidity(amount) nonReentrant {
     address operator = _msgSender();
 
     _mint(to, amount, controlledToken, referrer);
 
-    // Cast lpToken from address to address payable
-    address payable recipient = address(uint160(address(_token())));
-    recipient.sendValue(msg.value);
+    _token().safeTransferFrom(operator, address(this), amount);
     _supply(amount);
 
     emit Deposited(operator, to, controlledToken, amount, referrer);
   }
 
-  // /// @notice Withdraw assets from the Prize Pool instantly.  A fairness fee may be charged for an early exit.
-  // /// @param from The address to redeem tokens from.
-  // /// @param amount The amount of tokens to redeem for assets.
-  // /// @param controlledToken The address of the token to redeem (i.e. ticket or sponsorship)
-  // /// @param maximumExitFee The maximum exit fee the caller is willing to pay.  This should be pre-calculated by the calculateExitFee() fxn.
-  // /// @return The actual exit fee paid
-  // function withdrawInstantlyFrom(
-  //   address from,
-  //   uint256 amount,
-  //   address controlledToken,
-  //   uint256 maximumExitFee
-  // ) external override nonReentrant onlyControlledToken(controlledToken) returns (uint256) {
-  //   (uint256 exitFee, uint256 burnedCredit) = _calculateEarlyExitFeeLessBurnedCredit(from, controlledToken, amount);
-  //   require(exitFee <= maximumExitFee, 'PrizePool/exit-fee-exceeds-user-maximum');
-
-  //   // burn the credit
-  //   _burnCredit(from, controlledToken, burnedCredit);
-
-  //   // burn the tickets
-  //   ControlledToken(controlledToken).controllerBurnFrom(_msgSender(), from, amount);
-
-  //   // redeem the tickets less the fee
-  //   uint256 amountLessFee = amount.sub(exitFee);
-  //   uint256 redeemed = _redeem(amountLessFee);
-
-  //   _token().safeTransfer(from, redeemed);
-
-  //   emit InstantWithdrawal(_msgSender(), from, controlledToken, amount, redeemed, exitFee);
-
-  //   return exitFee;
-  // }
-
+  /// @notice Withdraw assets from the Prize Pool instantly.  A fairness fee may be charged for an early exit.
+  /// @param from The address to redeem tokens from.
+  /// @param amount The amount of tokens to redeem for assets.
+  /// @param controlledToken The address of the token to redeem (i.e. ticket or sponsorship)
+  /// @param maximumExitFee The maximum exit fee the caller is willing to pay.  This should be pre-calculated by the calculateExitFee() fxn.
+  /// @return The actual exit fee paid
   function withdrawInstantlyFrom(
     address from,
     uint256 amount,
     address controlledToken,
     uint256 maximumExitFee
-  ) external override nonReentrant onlyControlledToken(controlledToken) returns (uint256) {
+  ) external virtual override nonReentrant onlyControlledToken(controlledToken) returns (uint256) {
     (uint256 exitFee, uint256 burnedCredit) = _calculateEarlyExitFeeLessBurnedCredit(from, controlledToken, amount);
     require(exitFee <= maximumExitFee, 'PrizePool/exit-fee-exceeds-user-maximum');
 
@@ -328,8 +277,7 @@ abstract contract PrizePool is
     uint256 amountLessFee = amount.sub(exitFee);
     uint256 redeemed = _redeem(amountLessFee);
 
-    IWvlx(address(_token())).withdraw(redeemed);
-    msg.sender.transfer(redeemed);
+    _token().safeTransfer(from, redeemed);
 
     emit InstantWithdrawal(_msgSender(), from, controlledToken, amount, redeemed, exitFee);
 
@@ -608,7 +556,7 @@ abstract contract PrizePool is
   /// @notice Sweep available timelocked balances to their owners.  The full balances will be swept to the owners.
   /// @param users An array of owner addresses
   /// @return The total amount of assets swept from the Prize Pool
-  function _sweepTimelockBalances(address[] memory users) internal returns (uint256) {
+  function _sweepTimelockBalances(address[] memory users) internal virtual returns (uint256) {
     address operator = _msgSender();
 
     uint256[] memory balances = new uint256[](users.length);
@@ -641,8 +589,6 @@ abstract contract PrizePool is
         delete _unlockTimestamps[users[i]];
         uint256 shareMantissa = FixedPoint.calculateMantissa(balances[i], totalWithdrawal);
         uint256 transferAmount = FixedPoint.multiplyUintByMantissa(redeemed, shareMantissa);
-        IWvlx(address(_token())).withdraw(transferAmount);
-        address(uint160(users[i])).transfer(redeemed);
         underlyingToken.safeTransfer(users[i], transferAmount);
         emit TimelockedWithdrawalSwept(operator, users[i], balances[i], transferAmount);
       }

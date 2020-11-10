@@ -31,7 +31,7 @@ interface PrizePoolInterface {
     uint256 amount,
     address controlledToken,
     address referrer
-  ) external payable;
+  ) external;
 
   /// @notice Withdraw assets from the Prize Pool instantly.  A fairness fee may be charged for an early exit.
   /// @param from The address to redeem tokens from.

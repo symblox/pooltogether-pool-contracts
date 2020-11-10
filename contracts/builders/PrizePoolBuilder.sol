@@ -2,16 +2,13 @@
 
 pragma solidity >=0.6.0 <0.7.0;
 
-import "../prize-pool/PrizePool.sol";
-import "../prize-strategy/single-random-winner/SingleRandomWinner.sol";
+import '../prize-pool/PrizePool.sol';
+import '../prize-strategy/single-random-winner/SingleRandomWinner.sol';
 
 contract PrizePoolBuilder {
   using SafeCast for uint256;
 
-  event PrizePoolCreated (
-    address indexed creator,
-    address indexed prizePool
-  );
+  event PrizePoolCreated(address indexed creator, address indexed prizePool);
 
   function _setupSingleRandomWinner(
     PrizePool prizePool,
@@ -26,10 +23,6 @@ contract PrizePoolBuilder {
     prizePool.addControlledToken(ticket);
     prizePool.addControlledToken(address(singleRandomWinner.sponsorship()));
 
-    prizePool.setCreditPlanOf(
-      ticket,
-      ticketCreditRateMantissa.toUint128(),
-      ticketCreditLimitMantissa.toUint128()
-    );
+    prizePool.setCreditPlanOf(ticket, ticketCreditRateMantissa.toUint128(), ticketCreditLimitMantissa.toUint128());
   }
 }

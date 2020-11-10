@@ -24,8 +24,8 @@ const setup = async () => {
 
   //   await deployments.fixture()
   builder = await ethers.getContractAt(
-    'StakePrizePoolBuilder',
-    (await deployments.get('StakePrizePoolBuilder')).address,
+    'SyxPrizePoolBuilder',
+    (await deployments.get('SyxPrizePoolBuilder')).address,
     wallet
   )
   rngServiceMock = await deployments.get('RNGServiceMock')
@@ -59,18 +59,18 @@ const setup = async () => {
     externalERC20Awards: []
   }
 
-  stakePrizePoolConfig = {
+  syxPrizePoolConfig = {
     token: token.address,
     maxExitFeeMantissa: toWei('0.5'),
     maxTimelockDuration: 1000
   }
   let decimals = 18
 
-  let tx = await builder.createSingleRandomWinner(stakePrizePoolConfig, singleRandomWinnerConfig, decimals)
+  let tx = await builder.createSingleRandomWinner(syxPrizePoolConfig, singleRandomWinnerConfig, decimals)
   let events = await getEvents(tx)
   let prizePoolCreatedEvent = events.find(e => e.name == 'PrizePoolCreated')
 
-  const prizePool = await ethers.getContractAt('StakePrizePool', prizePoolCreatedEvent.args.prizePool, wallet)
+  const prizePool = await ethers.getContractAt('SyxPrizePool', prizePoolCreatedEvent.args.prizePool, wallet)
   console.log(`PrizePool address: ${prizePool.address}`)
   const prizeStrategy = await ethers.getContractAt('SingleRandomWinnerHarness', await prizePool.prizeStrategy(), wallet)
   const ticketAddress = await prizeStrategy.ticket()
