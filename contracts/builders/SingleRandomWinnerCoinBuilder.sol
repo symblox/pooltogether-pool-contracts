@@ -34,6 +34,11 @@ contract SingleRandomWinnerCoinBuilder {
     address[] externalERC20Awards;
   }
 
+  struct PrizeStrategyConfig {
+    address ticket;
+    address sponsorship;
+  }
+
   ControlledTokenProxyFactory public controlledTokenProxyFactory;
   TicketProxyFactory public ticketProxyFactory;
   SingleRandomWinnerCoinFactory public singleRandomWinnerCoinFactory;
@@ -64,33 +69,50 @@ contract SingleRandomWinnerCoinBuilder {
     PrizePool prizePool,
     SingleRandomWinnerConfig calldata config,
     uint8 decimals,
-    address owner
+    address owner,
+    address sponsor
   ) external returns (SingleRandomWinnerCoin) {
-    SingleRandomWinnerCoin prizeStrategy = singleRandomWinnerCoinFactory.create();
+    PrizeStrategyConfig memory prizeStrategyConfig;
+    prizeStrategyConfig.ticket = address(_createTicket(prizePool, config.ticketName, config.ticketSymbol, decimals));
 
-    address ticket = address(_createTicket(prizePool, config.ticketName, config.ticketSymbol, decimals));
-
-    address sponsorship = address(
+    prizeStrategyConfig.sponsorship = address(
       _createControlledToken(prizePool, config.sponsorshipName, config.sponsorshipSymbol, decimals)
     );
 
+    SingleRandomWinnerCoin prizeStrategy = singleRandomWinnerCoinFactory.create();
     prizeStrategy.initialize(
       trustedForwarder,
       config.prizePeriodStart,
       config.prizePeriodSeconds,
       prizePool,
-      ticket,
-      sponsorship,
+      prizeStrategyConfig.ticket,
+      prizeStrategyConfig.sponsorship,
       config.rngService,
-      config.externalERC20Awards
+      config.externalERC20Awards,
+      sponsor
     );
 
     prizeStrategy.transferOwnership(owner);
 
-    emit SingleRandomWinnerCoinCreated(address(prizeStrategy), ticket, sponsorship);
+    emit SingleRandomWinnerCoinCreated(
+      address(prizeStrategy),
+      prizeStrategyConfig.ticket,
+      prizeStrategyConfig.sponsorship
+    );
 
     return prizeStrategy;
   }
+
+  // function _createAndInitPool(
+  //   PrizePool prizePool,
+  //   SingleRandomWinnerConfig memory config,
+  //   address owner,
+  //   address sponsor,
+  //   address ticket,
+  //   address sponsorship
+  // ) private returns (SingleRandomWinnerCoin) {
+
+  // }
 
   function _createControlledToken(
     TokenControllerInterface controller,

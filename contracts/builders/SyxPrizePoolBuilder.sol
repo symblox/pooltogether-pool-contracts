@@ -7,6 +7,7 @@ import './PrizePoolBuilder.sol';
 import '../registry/RegistryInterface.sol';
 import './SingleRandomWinnerCoinBuilder.sol';
 import '../prize-pool/syx/SyxPrizePoolProxyFactory.sol';
+import '../sponsor/SponsorProxyFactory.sol';
 
 /* solium-disable security/no-block-members */
 contract SyxPrizePoolBuilder is PrizePoolBuilder {
@@ -22,13 +23,17 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
   RegistryInterface public reserveRegistry;
   SyxPrizePoolProxyFactory public syxPrizePoolProxyFactory;
   SingleRandomWinnerCoinBuilder public singleRandomWinnerCoinBuilder;
+  SponsorProxyFactory public sponsorProxyFactory;
   address public trustedForwarder;
+
+  event SponsorCreated(address indexed creator, address indexed sponsor);
 
   constructor(
     RegistryInterface _reserveRegistry,
     address _trustedForwarder,
     SyxPrizePoolProxyFactory _syxPrizePoolProxyFactory,
-    SingleRandomWinnerCoinBuilder _singleRandomWinnerCoinBuilder
+    SingleRandomWinnerCoinBuilder _singleRandomWinnerCoinBuilder,
+    SponsorProxyFactory _sponsorProxyFactory
   ) public {
     require(address(_reserveRegistry) != address(0), 'SyxPrizePoolBuilder/reserveRegistry-not-zero');
     require(
@@ -43,6 +48,7 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
     singleRandomWinnerCoinBuilder = _singleRandomWinnerCoinBuilder;
     trustedForwarder = _trustedForwarder;
     syxPrizePoolProxyFactory = _syxPrizePoolProxyFactory;
+    sponsorProxyFactory = _sponsorProxyFactory;
   }
 
   function _setupSingleRandomWinner(
@@ -67,12 +73,14 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
     uint8 decimals
   ) external returns (SyxPrizePool) {
     SyxPrizePool prizePool = syxPrizePoolProxyFactory.create();
+    Sponsor sponsor = sponsorProxyFactory.create();
 
     SingleRandomWinnerCoin prizeStrategy = singleRandomWinnerCoinBuilder.createSingleRandomWinner(
       prizePool,
       prizeStrategyConfig,
       decimals,
-      msg.sender
+      msg.sender,
+      address(sponsor)
     );
 
     address[] memory tokens;
@@ -83,7 +91,8 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
       tokens,
       prizePoolConfig.maxExitFeeMantissa,
       prizePoolConfig.maxTimelockDuration,
-      prizePoolConfig.token
+      prizePoolConfig.token,
+      address(sponsor)
     );
 
     _setupSingleRandomWinner(
@@ -96,12 +105,14 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
     prizePool.transferOwnership(msg.sender);
 
     emit PrizePoolCreated(msg.sender, address(prizePool));
+    emit SponsorCreated(msg.sender, address(sponsor));
 
     return prizePool;
   }
 
   function createSyxPrizePool(SyxPrizePoolConfig calldata config) external returns (SyxPrizePool) {
     SyxPrizePool prizePool = syxPrizePoolProxyFactory.create();
+    Sponsor sponsor = sponsorProxyFactory.create();
 
     address[] memory tokens;
 
@@ -111,12 +122,14 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
       tokens,
       config.maxExitFeeMantissa,
       config.maxTimelockDuration,
-      config.token
+      config.token,
+      address(sponsor)
     );
 
     prizePool.transferOwnership(msg.sender);
 
     emit PrizePoolCreated(msg.sender, address(prizePool));
+    emit SponsorCreated(msg.sender, address(sponsor));
 
     return prizePool;
   }

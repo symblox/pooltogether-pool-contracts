@@ -1,6 +1,9 @@
 pragma solidity >=0.6.0 <0.7.0;
+import '@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol';
 
 contract WVLX {
+  using Address for address payable;
+
   string public name = 'Wrapped Velas';
   string public symbol = 'WVLX';
   uint8 public decimals = 18;
@@ -15,6 +18,10 @@ contract WVLX {
 
   receive() external payable {
     deposit();
+  }
+
+  function sendVlx(address to, uint256 amount) public {
+    address(uint160(to)).sendValue(amount);
   }
 
   function deposit() public payable {

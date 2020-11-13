@@ -2,12 +2,11 @@
 
 pragma solidity >=0.6.0 <0.7.0;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
+import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol';
 
-import "../PrizePool.sol";
+import '../PrizePool.sol';
 
 contract StakePrizePool is PrizePool {
-
   IERC20 private stakeToken;
 
   event StakePrizePoolInitialized(address indexed stakeToken);
@@ -18,17 +17,14 @@ contract StakePrizePool is PrizePool {
   /// @param _maxExitFeeMantissa The maximum exit fee size, relative to the withdrawal amount
   /// @param _maxTimelockDuration The maximum length of time the withdraw timelock could be
   /// @param _stakeToken Address of the stake token
-  function initialize (
+  function initialize(
     address _trustedForwarder,
     RegistryInterface _reserveRegistry,
     address[] memory _controlledTokens,
     uint256 _maxExitFeeMantissa,
     uint256 _maxTimelockDuration,
     IERC20 _stakeToken
-  )
-    public
-    initializer
-  {
+  ) public initializer {
     PrizePool.initialize(
       _trustedForwarder,
       _reserveRegistry,

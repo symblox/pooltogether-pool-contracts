@@ -93,6 +93,14 @@ module.exports = async buidler => {
       skipIfAlreadyDeployed: true
     })
 
+    debug('\n  Deploying syx...')
+    const syxResult = await deploy('mockToken', {
+      args: [],
+      contract: 'mockToken',
+      from: deployer,
+      skipIfAlreadyDeployed: true
+    })
+
     debug('\n  Deploying Dai...')
     const daiResult = await deploy('Dai', {
       args: ['DAI Test Token', 'DAI'],
@@ -100,6 +108,27 @@ module.exports = async buidler => {
       from: deployer,
       skipIfAlreadyDeployed: true
     })
+
+    debug('\n  Deploying bpt...')
+    const bptResult = await deploy('mockBpt', {
+      args: [],
+      contract: 'mockBpt',
+      from: deployer,
+      skipIfAlreadyDeployed: true
+    })
+
+    debug('\n  Deploying reward pool...')
+    const rewardPoolResult = await deploy('mockRewardPool', {
+      args: [],
+      contract: 'mockRewardPool',
+      from: deployer,
+      skipIfAlreadyDeployed: true
+    })
+    const rewardPoolContract = await buidler.ethers.getContractAt('mockRewardPool', rewardPoolResult.address, signer)
+    const syxContract = await buidler.ethers.getContractAt('mockToken', syxResult.address, signer)
+   
+    await rewardPoolContract.setSyx(syxResult.address)
+    await syxContract.mint(rewardPoolResult.address, "100000000000000000000000")
 
     debug('\n  Deploying cDai...')
     // should be about 20% APR
@@ -124,6 +153,9 @@ module.exports = async buidler => {
     debug('  - RNGService:       ', rng)
     debug('  - Dai:              ', daiResult.address)
     debug('  - WVLX:             ', wvlxResult.address)
+    debug('  - SYX:              ', syxResult.address)
+    debug('  - bpt:              ', bptResult.address)
+    debug('  - rewardPool:       ', rewardPoolResult.address)
   }
 
   let comptrollerAddress = comptroller
@@ -193,6 +225,12 @@ module.exports = async buidler => {
     skipIfAlreadyDeployed: true
   })
 
+  debug('\n  Deploying SponsorProxyFactory...')
+  const sponsorProxyFactoryResult = await deploy('SponsorProxyFactory', {
+    from: deployer,
+    skipIfAlreadyDeployed: true
+  })
+
   debug('\n  Deploying ControlledTokenBuilder...')
   const controlledTokenBuilderResult = await deploy('ControlledTokenBuilder', {
     args: [trustedForwarder, controlledTokenProxyFactoryResult.address, ticketProxyFactoryResult.address],
@@ -203,9 +241,9 @@ module.exports = async buidler => {
   debug('\n  Deploying SingleRandomWinnerCoinFactory...')
   let singleRandomWinnerCoinFactoryResult
   if (isTestEnvironment && !harnessDisabled) {
-    debug('\n  Deploying SingleRandomWinnerHarnessProxyFactory...')
+    debug('\n  Deploying SingleRandomWinnerCoinHarnessProxyFactory...')
     singleRandomWinnerCoinFactoryResult = await deploy('SingleRandomWinnerCoinFactory', {
-      contract: 'SingleRandomWinnerHarnessProxyFactory',
+      contract: 'SingleRandomWinnerCoinHarnessProxyFactory',
       from: deployer,
       skipIfAlreadyDeployed: true
     })
@@ -246,7 +284,8 @@ module.exports = async buidler => {
       reserveRegistryResult.address,
       trustedForwarder,
       syxPrizePoolProxyFactoryResult.address,
-      singleRandomWinnerBuilderResult.address
+      singleRandomWinnerBuilderResult.address,
+      sponsorProxyFactoryResult.address
     ],
     from: deployer,
     skipIfAlreadyDeployed: true
@@ -268,6 +307,7 @@ module.exports = async buidler => {
   // debug('  - yVaultPrizePoolBuilder:         ', yVaultPrizePoolBuilderResult.address)
   debug('  - StakePrizePoolBuilder:          ', stakePrizePoolBuilderResult.address)
   debug('  - SyxPrizePoolBuilder:          ', syxPrizePoolBuilderResult.address)
+  debug('  - SponsorBuilder:          ', sponsorProxyFactoryResult.address)
   
   // if (permitAndDepositDaiResult) {
   //   debug('  - PermitAndDepositDai:            ', permitAndDepositDaiResult.address)

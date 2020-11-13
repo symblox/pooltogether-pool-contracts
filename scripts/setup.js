@@ -32,6 +32,17 @@ const setup = async () => {
   //token = await deployments.get('Dai')
   token = await deployments.get('WVLX')
 
+   if(isTestEnvironment){
+    syx = await deployments.get('mockToken')
+    const Syx = await ethers.getContractAt(
+      'mockToken',
+      syx.address,
+      wallet
+    )
+    console.log({ syxAddress: syx.address })
+    await Syx.initialize("SYX","SYX",18,"100000000000000000000000")
+  }
+
   // const Dai = await ethers.getContractAt(
   //   'ERC20Mintable',
   //   token.address,
@@ -56,7 +67,7 @@ const setup = async () => {
     sponsorshipSymbol: 'SPON',
     ticketCreditLimitMantissa: toWei('0.1'),
     ticketCreditRateMantissa: toWei('0.001'),
-    externalERC20Awards: []
+    externalERC20Awards: [syx.address]
   }
 
   syxPrizePoolConfig = {
@@ -69,14 +80,21 @@ const setup = async () => {
   let tx = await builder.createSingleRandomWinner(syxPrizePoolConfig, singleRandomWinnerConfig, decimals)
   let events = await getEvents(tx)
   let prizePoolCreatedEvent = events.find(e => e.name == 'PrizePoolCreated')
-
   const prizePool = await ethers.getContractAt('SyxPrizePool', prizePoolCreatedEvent.args.prizePool, wallet)
   console.log(`PrizePool address: ${prizePool.address}`)
-  const prizeStrategy = await ethers.getContractAt('SingleRandomWinnerHarness', await prizePool.prizeStrategy(), wallet)
+
+  const prizeStrategy = await ethers.getContractAt('SingleRandomWinnerCoinHarness', await prizePool.prizeStrategy(), wallet)
   const ticketAddress = await prizeStrategy.ticket()
   console.log({ ticketAddress })
   const sponsorshipAddress = await prizeStrategy.sponsorship()
   console.log({ sponsorshipAddress })
+
+  let sponsorCreatedEvent = events.find(e => e.name == 'SponsorCreated')
+  const sponsor = await ethers.getContractAt('Sponsor', sponsorCreatedEvent.args.sponsor, wallet)
+  const bpt = await deployments.get('mockBpt')
+  const rewardPool = await deployments.get('mockRewardPool')
+  await sponsor.initialize(prizePool.address,ticketAddress,bpt.address,rewardPool.address,0);
+  console.log(`Sponsor address: ${sponsor.address}`)
 }
 
 setup()
