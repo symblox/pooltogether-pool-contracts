@@ -341,10 +341,10 @@ abstract contract PrizePool is
     _timelockBalances[user] = _timelockBalances[user].add(amount);
     _unlockTimestamps[user] = timestamp;
 
-    // // if the funds should already be unlocked
-    // if (timestamp <= _currentTime()) {
-    //   _sweepTimelockBalances(users);
-    // }
+    // if the funds should already be unlocked
+    if (timestamp <= _currentTime()) {
+      _sweepTimelockBalances(users);
+    }
   }
 
   /// @notice Updates the Prize Strategy when tokens are transferred between holders.

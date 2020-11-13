@@ -120,17 +120,10 @@ contract SyxPrizePool is PrizePool {
     return exitFee;
   }
 
-  uint256 public temp;
-  uint256 public temp2;
-  uint256 public temp3;
-  uint256 public temp4;
-  uint256 public temp5;
-
   /// @notice Sweep available timelocked balances to their owners.  The full balances will be swept to the owners.
   /// @param users An array of owner addresses
   /// @return The total amount of assets swept from the Prize Pool
   function _sweepTimelockBalances(address[] memory users) internal override returns (uint256) {
-    temp5 = users.length;
     address operator = _msgSender();
 
     uint256[] memory balances = new uint256[](users.length);
@@ -155,8 +148,6 @@ contract SyxPrizePool is PrizePool {
     timelockTotalSupply = timelockTotalSupply.sub(totalWithdrawal);
 
     uint256 redeemed = _redeem(totalWithdrawal);
-    temp = totalWithdrawal;
-    temp2 = redeemed;
 
     IERC20 underlyingToken = IERC20(_token());
 
@@ -164,9 +155,7 @@ contract SyxPrizePool is PrizePool {
       if (balances[i] > 0) {
         delete _unlockTimestamps[users[i]];
         uint256 shareMantissa = FixedPoint.calculateMantissa(balances[i], totalWithdrawal);
-        temp3 = shareMantissa;
         uint256 transferAmount = FixedPoint.multiplyUintByMantissa(redeemed, shareMantissa);
-        temp4 = transferAmount;
         //TODO: When the amount of WVLX available is less than the amount entered, only the available amount is withdrawn
         IWvlx(address(_token())).withdraw(transferAmount);
         address(uint160(users[i])).transfer(transferAmount);
