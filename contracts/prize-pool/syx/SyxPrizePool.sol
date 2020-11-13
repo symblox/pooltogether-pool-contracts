@@ -149,8 +149,6 @@ contract SyxPrizePool is PrizePool {
 
     uint256 redeemed = _redeem(totalWithdrawal);
 
-    IERC20 underlyingToken = IERC20(_token());
-
     for (i = 0; i < users.length; i++) {
       if (balances[i] > 0) {
         delete _unlockTimestamps[users[i]];
@@ -159,7 +157,6 @@ contract SyxPrizePool is PrizePool {
         //TODO: When the amount of WVLX available is less than the amount entered, only the available amount is withdrawn
         IWvlx(address(_token())).withdraw(transferAmount);
         address(uint160(users[i])).transfer(transferAmount);
-        underlyingToken.safeTransfer(users[i], transferAmount);
         emit TimelockedWithdrawalSwept(operator, users[i], balances[i], transferAmount);
       }
     }
