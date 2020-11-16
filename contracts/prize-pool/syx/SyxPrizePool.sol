@@ -20,8 +20,7 @@ contract SyxPrizePool is PrizePool {
     address[] memory _controlledTokens,
     uint256 _maxExitFeeMantissa,
     uint256 _maxTimelockDuration,
-    IERC20 _stakeToken,
-    address _sponsor
+    IERC20 _stakeToken
   ) public initializer {
     PrizePool.initialize(
       _trustedForwarder,
@@ -31,12 +30,15 @@ contract SyxPrizePool is PrizePool {
       _maxTimelockDuration
     );
     stakeToken = _stakeToken;
-    sponsor = ISponsor(_sponsor);
 
     emit SyxPrizePoolInitialized(address(stakeToken));
   }
 
   receive() external payable {}
+
+  function setSponsor(address _sponsor) external onlyOwner {
+    sponsor = ISponsor(_sponsor);
+  }
 
   /// @notice Determines whether the passed token can be transferred out as an external award.
   /// @dev Different yield sources will hold the deposits as another kind of token: such a Compound's cToken.  The
@@ -110,8 +112,10 @@ contract SyxPrizePool is PrizePool {
     //TODO: When the amount of WVLX available is less than the amount entered, only the available amount is withdrawn
     IWvlx(address(_token())).withdraw(redeemed);
     if (exitFee > 0) {
-      _mint(address(sponsor), exitFee, controlledToken, address(0));
-      sponsor.depositAll(controlledToken, 0);
+      if (address(sponsor) != address(0)) {
+        _mint(address(sponsor), exitFee, controlledToken, address(0));
+        sponsor.depositAll(controlledToken, 0);
+      }
     }
     msg.sender.transfer(redeemed);
 

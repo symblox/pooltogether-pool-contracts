@@ -286,8 +286,7 @@ module.exports = async buidler => {
       reserveRegistryResult.address,
       trustedForwarder,
       syxPrizePoolProxyFactoryResult.address,
-      singleRandomWinnerBuilderResult.address,
-      sponsorProxyFactoryResult.address
+      singleRandomWinnerBuilderResult.address
     ],
     from: deployer,
     skipIfAlreadyDeployed: true

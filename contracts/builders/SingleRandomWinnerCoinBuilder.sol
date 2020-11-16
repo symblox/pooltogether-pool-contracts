@@ -69,8 +69,7 @@ contract SingleRandomWinnerCoinBuilder {
     PrizePool prizePool,
     SingleRandomWinnerConfig calldata config,
     uint8 decimals,
-    address owner,
-    address sponsor
+    address owner
   ) external returns (SingleRandomWinnerCoin) {
     PrizeStrategyConfig memory prizeStrategyConfig;
     prizeStrategyConfig.ticket = address(_createTicket(prizePool, config.ticketName, config.ticketSymbol, decimals));
@@ -88,8 +87,7 @@ contract SingleRandomWinnerCoinBuilder {
       prizeStrategyConfig.ticket,
       prizeStrategyConfig.sponsorship,
       config.rngService,
-      config.externalERC20Awards,
-      sponsor
+      config.externalERC20Awards
     );
 
     prizeStrategy.transferOwnership(owner);
@@ -102,17 +100,6 @@ contract SingleRandomWinnerCoinBuilder {
 
     return prizeStrategy;
   }
-
-  // function _createAndInitPool(
-  //   PrizePool prizePool,
-  //   SingleRandomWinnerConfig memory config,
-  //   address owner,
-  //   address sponsor,
-  //   address ticket,
-  //   address sponsorship
-  // ) private returns (SingleRandomWinnerCoin) {
-
-  // }
 
   function _createControlledToken(
     TokenControllerInterface controller,
