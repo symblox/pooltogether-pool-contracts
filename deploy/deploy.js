@@ -37,7 +37,7 @@ module.exports = async buidler => {
   const chainId = parseInt(await getChainId(), 10)
   const isLocal = [1, 3, 4, 42, 106, 111].indexOf(chainId) == -1
   // 31337 is unit testing, 1337 is for coverage
-  const isTestEnvironment = chainId === 31337 || chainId === 1337 || chainId === 111
+  const isTestEnvironment = chainId === 31337 || chainId === 1337
   // const signer = await ethers.provider.getSigner(deployer)
   const [signer] = await ethers.getSigners()
 
@@ -54,7 +54,9 @@ module.exports = async buidler => {
   }
   debug('\n  adminAccount:  ', adminAccount)
 
+  console.log("user: ",signer._address)
   await deploy1820(signer)
+
 
   if (chainId === 111 || chainId === 106) {
     debug('\n  Deploying TrustedForwarder...')
@@ -101,13 +103,13 @@ module.exports = async buidler => {
       skipIfAlreadyDeployed: true
     })
 
-    debug('\n  Deploying Dai...')
-    const daiResult = await deploy('Dai', {
-      args: ['DAI Test Token', 'DAI'],
-      contract: 'ERC20Mintable',
-      from: deployer,
-      skipIfAlreadyDeployed: true
-    })
+    // debug('\n  Deploying Dai...')
+    // const daiResult = await deploy('Dai', {
+    //   args: ['DAI Test Token', 'DAI'],
+    //   contract: 'ERC20Mintable',
+    //   from: deployer,
+    //   skipIfAlreadyDeployed: true
+    // })
 
     debug('\n  Deploying bpt...')
     const bptResult = await deploy('mockBpt', {
@@ -130,28 +132,28 @@ module.exports = async buidler => {
     await rewardPoolContract.setSyx(syxResult.address)
     await syxContract.mint(rewardPoolResult.address, "100000000000000000000000")
 
-    debug('\n  Deploying cDai...')
-    // should be about 20% APR
-    let supplyRate = '8888888888888'
-    await deploy('cDai', {
-      args: [daiResult.address, supplyRate],
-      contract: 'CTokenMock',
-      from: deployer,
-      skipIfAlreadyDeployed: true
-    })
+    // debug('\n  Deploying cDai...')
+    // // should be about 20% APR
+    // let supplyRate = '8888888888888'
+    // await deploy('cDai', {
+    //   args: [daiResult.address, supplyRate],
+    //   contract: 'CTokenMock',
+    //   from: deployer,
+    //   skipIfAlreadyDeployed: true
+    // })
 
-    await deploy('yDai', {
-      args: [daiResult.address],
-      contract: 'yVaultMock',
-      from: deployer,
-      skipIfAlreadyDeployed: true
-    })
+    // await deploy('yDai', {
+    //   args: [daiResult.address],
+    //   contract: 'yVaultMock',
+    //   from: deployer,
+    //   skipIfAlreadyDeployed: true
+    // })
 
     // Display Contract Addresses
     debug('\n  Local Contract Deployments;\n')
     debug('  - TrustedForwarder: ', trustedForwarder)
     debug('  - RNGService:       ', rng)
-    debug('  - Dai:              ', daiResult.address)
+    // debug('  - Dai:              ', daiResult.address)
     debug('  - WVLX:             ', wvlxResult.address)
     debug('  - SYX:              ', syxResult.address)
     debug('  - bpt:              ', bptResult.address)
@@ -213,11 +215,11 @@ module.exports = async buidler => {
     skipIfAlreadyDeployed: true
   })
 
-  debug('\n  Deploying StakePrizePoolProxyFactory...')
-  const stakePrizePoolProxyFactoryResult = await deploy('StakePrizePoolProxyFactory', {
-    from: deployer,
-    skipIfAlreadyDeployed: true
-  })
+  // debug('\n  Deploying StakePrizePoolProxyFactory...')
+  // const stakePrizePoolProxyFactoryResult = await deploy('StakePrizePoolProxyFactory', {
+  //   from: deployer,
+  //   skipIfAlreadyDeployed: true
+  // })
 
   debug('\n  Deploying SyxPrizePoolProxyFactory...')
   const syxPrizePoolProxyFactoryResult = await deploy('SyxPrizePoolProxyFactory', {
@@ -266,17 +268,17 @@ module.exports = async buidler => {
     skipIfAlreadyDeployed: true
   })
 
-  debug('\n  Deploying StakePrizePoolBuilder...')
-  const stakePrizePoolBuilderResult = await deploy('StakePrizePoolBuilder', {
-    args: [
-      reserveRegistryResult.address,
-      trustedForwarder,
-      stakePrizePoolProxyFactoryResult.address,
-      singleRandomWinnerBuilderResult.address
-    ],
-    from: deployer,
-    skipIfAlreadyDeployed: true
-  })
+  // debug('\n  Deploying StakePrizePoolBuilder...')
+  // const stakePrizePoolBuilderResult = await deploy('StakePrizePoolBuilder', {
+  //   args: [
+  //     reserveRegistryResult.address,
+  //     trustedForwarder,
+  //     stakePrizePoolProxyFactoryResult.address,
+  //     singleRandomWinnerBuilderResult.address
+  //   ],
+  //   from: deployer,
+  //   skipIfAlreadyDeployed: true
+  // })
 
   debug('\n  Deploying SyxPrizePoolBuilder...')
   const syxPrizePoolBuilderResult = await deploy('SyxPrizePoolBuilder', {
@@ -291,8 +293,6 @@ module.exports = async buidler => {
     skipIfAlreadyDeployed: true
   })
 
-  
-
   // Display Contract Addresses
   debug('\n  Contract Deployments Complete!\n')
   debug('  - TicketProxyFactory:             ', ticketProxyFactoryResult.address)
@@ -305,7 +305,7 @@ module.exports = async buidler => {
   debug('  - SingleRandomWinnerBuilder:      ', singleRandomWinnerBuilderResult.address)
   // debug('  - CompoundPrizePoolBuilder:       ', compoundPrizePoolBuilderResult.address)
   // debug('  - yVaultPrizePoolBuilder:         ', yVaultPrizePoolBuilderResult.address)
-  debug('  - StakePrizePoolBuilder:          ', stakePrizePoolBuilderResult.address)
+  // debug('  - StakePrizePoolBuilder:          ', stakePrizePoolBuilderResult.address)
   debug('  - SyxPrizePoolBuilder:          ', syxPrizePoolBuilderResult.address)
   debug('  - SponsorBuilder:          ', sponsorProxyFactoryResult.address)
   
