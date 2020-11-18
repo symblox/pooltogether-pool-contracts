@@ -14,8 +14,8 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
 
-  address ticket;
-  ISyxPrizePool prizePool;
+  address public ticket;
+  ISyxPrizePool public prizePool;
   IRewardManager public rewardManager;
   uint8 public rewardPoolId;
   address public lpToken; //bpt
@@ -52,8 +52,12 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
     depositAll(ticket, 0);
   }
 
+  function timestamp() external view returns (uint256) {
+    return block.timestamp;
+  }
+
   function ticketHolder() external view returns (address) {
-    return address(rewardManager);
+    return lpToken;
   }
 
   function balanceOfLpToken() external view returns (uint256) {

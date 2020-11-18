@@ -102,6 +102,8 @@ module.exports = async buidler => {
       from: deployer,
       skipIfAlreadyDeployed: true
     })
+    const syxContract = await buidler.ethers.getContractAt('mockToken', syxResult.address, signer)
+    await syxContract.initialize("SYX","SYX",18,"100000000000000000000000")
 
     // debug('\n  Deploying Dai...')
     // const daiResult = await deploy('Dai', {
@@ -127,8 +129,6 @@ module.exports = async buidler => {
       skipIfAlreadyDeployed: true
     })
     const rewardPoolContract = await buidler.ethers.getContractAt('mockRewardPool', rewardPoolResult.address, signer)
-    const syxContract = await buidler.ethers.getContractAt('mockToken', syxResult.address, signer)
-   
     await rewardPoolContract.setSyx(syxResult.address)
     await syxContract.mint(rewardPoolResult.address, "100000000000000000000000")
 
@@ -286,7 +286,8 @@ module.exports = async buidler => {
       reserveRegistryResult.address,
       trustedForwarder,
       syxPrizePoolProxyFactoryResult.address,
-      singleRandomWinnerBuilderResult.address
+      singleRandomWinnerBuilderResult.address,
+      sponsorProxyFactoryResult.address
     ],
     from: deployer,
     skipIfAlreadyDeployed: true
@@ -300,13 +301,13 @@ module.exports = async buidler => {
   // debug('  - CompoundPrizePoolProxyFactory:  ', compoundPrizePoolProxyFactoryResult.address)
   debug('  - ControlledTokenProxyFactory:    ', controlledTokenProxyFactoryResult.address)
   debug('  - SingleRandomWinnerCoinFactory: ', singleRandomWinnerCoinFactoryResult.address)
+  debug('  - SponsorProxyFactory: ',          sponsorProxyFactoryResult.address)
   debug('  - ControlledTokenBuilder:         ', controlledTokenBuilderResult.address)
   debug('  - SingleRandomWinnerBuilder:      ', singleRandomWinnerBuilderResult.address)
   // debug('  - CompoundPrizePoolBuilder:       ', compoundPrizePoolBuilderResult.address)
   // debug('  - yVaultPrizePoolBuilder:         ', yVaultPrizePoolBuilderResult.address)
   // debug('  - StakePrizePoolBuilder:          ', stakePrizePoolBuilderResult.address)
   debug('  - SyxPrizePoolBuilder:          ', syxPrizePoolBuilderResult.address)
-  debug('  - SponsorBuilder:          ', sponsorProxyFactoryResult.address)
   
   // if (permitAndDepositDaiResult) {
   //   debug('  - PermitAndDepositDai:            ', permitAndDepositDaiResult.address)

@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 import './PrizePoolBuilder.sol';
 import '../registry/RegistryInterface.sol';
 import './SingleRandomWinnerCoinBuilder.sol';
+import '../sponsor/SponsorProxyFactory.sol';
 import '../prize-pool/syx/SyxPrizePoolProxyFactory.sol';
 
 /* solium-disable security/no-block-members */
@@ -22,13 +23,17 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
   RegistryInterface public reserveRegistry;
   SyxPrizePoolProxyFactory public syxPrizePoolProxyFactory;
   SingleRandomWinnerCoinBuilder public singleRandomWinnerCoinBuilder;
+  SponsorProxyFactory public sponsorProxyFactory;
   address public trustedForwarder;
+
+  event SponsorCreated(address sender, address sponsor);
 
   constructor(
     RegistryInterface _reserveRegistry,
     address _trustedForwarder,
     SyxPrizePoolProxyFactory _syxPrizePoolProxyFactory,
-    SingleRandomWinnerCoinBuilder _singleRandomWinnerCoinBuilder
+    SingleRandomWinnerCoinBuilder _singleRandomWinnerCoinBuilder,
+    SponsorProxyFactory _sponsorProxyFactory
   ) public {
     require(address(_reserveRegistry) != address(0), 'SyxPrizePoolBuilder/reserveRegistry-not-zero');
     require(
@@ -39,9 +44,11 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
       address(_syxPrizePoolProxyFactory) != address(0),
       'SyxPrizePoolBuilder/syx-prize-pool-proxy-factory-not-zero'
     );
+    require(address(_sponsorProxyFactory) != address(0), 'SyxPrizePoolBuilder/sponsor-factory-not-zero');
     reserveRegistry = _reserveRegistry;
     singleRandomWinnerCoinBuilder = _singleRandomWinnerCoinBuilder;
     trustedForwarder = _trustedForwarder;
+    sponsorProxyFactory = _sponsorProxyFactory;
     syxPrizePoolProxyFactory = _syxPrizePoolProxyFactory;
   }
 
@@ -118,5 +125,11 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
     emit PrizePoolCreated(msg.sender, address(prizePool));
 
     return prizePool;
+  }
+
+  function createSponsor() external returns (Sponsor) {
+    Sponsor sponsor = sponsorProxyFactory.create();
+    emit SponsorCreated(msg.sender, address(sponsor));
+    return sponsor;
   }
 }

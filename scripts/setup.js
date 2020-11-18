@@ -11,8 +11,12 @@ let addresses = {
     //rewardPoolId: 2, //pVLX reward pool id
     rngService: "0xB4fb2B1FBB995bBb9A2c8481c61c5Be1c63e081b"
   },
-  1337: {},
-  31337: {}
+  1337: {
+    rewardPoolId: 0
+  },
+  31337: {
+    rewardPoolId: 0
+  }
 }
 
 async function getEvents(tx) {
@@ -52,14 +56,8 @@ const setup = async () => {
     addresses[chainId].wvlx = wvlx.address;
 
     syx = await deployments.get('mockToken')
-    const Syx = await ethers.getContractAt(
-      'mockToken',
-      syx.address,
-      wallet
-    )
     addresses[chainId].syx = syx.address;
     console.log({ syxAddress: syx.address })
-    await Syx.initialize("SYX","SYX",18,"100000000000000000000000")
 
     const bpt = await deployments.get('mockBpt')
     addresses[chainId].bpt = bpt.address;
@@ -100,22 +98,17 @@ const setup = async () => {
   const sponsorshipAddress = await prizeStrategy.sponsorship()
   console.log({ sponsorshipAddress })
 
-  const sponsorProxyFactoryResult = await deployments.get('SponsorProxyFactory')
-  const sponsorProxyFactory = await ethers.getContractAt(
-    'SponsorProxyFactory',
-    sponsorProxyFactoryResult.address,
-    wallet
-  )
-  let createTx = await sponsorProxyFactory.create()
-  let createEvents = await getEvents(createTx)
-  let sponsorCreatedEvent = createEvents.find(e => e.name == 'SponsorCreated')
-  const sponsor = await ethers.getContractAt('Sponsor', sponsorCreatedEvent.args.sponsor, wallet)
-  console.log(`Sponsor address: ${sponsor.address}`)
-
   if(isTestEnvironment){
+    let createTx = await builder.createSponsor()
+    let createEvents = await getEvents(createTx)
+    let sponsorCreatedEvent = createEvents.find(e => e.name == 'SponsorCreated')
+    const sponsor = await ethers.getContractAt('Sponsor', sponsorCreatedEvent.args.sponsor, wallet)
+    console.log(`Sponsor address: ${sponsor.address}`)
+
+    //Initialize first, set owner and then setSponsor
+    await sponsor.initialize(prizePool.address,ticketAddress,addresses[chainId].bpt,addresses[chainId].rewardPool,addresses[chainId].rewardPoolId)
     await prizeStrategy.setSponsor(sponsor.address)
     await prizePool.setSponsor(sponsor.address)
-    await sponsor.initialize(prizePool.address,ticketAddress,addresses[chainId].bpt,addresses[chainId].rewardPool,addresses[chainId].rewardPoolId)
   }else{
     //Manually call after the transaction pool is deployed
   }
