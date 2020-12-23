@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.6.4;
+pragma solidity 0.6.12;
 
 import "../interfaces/IERC20.sol";
 import "./Address.sol";

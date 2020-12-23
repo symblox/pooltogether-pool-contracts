@@ -51,14 +51,6 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
     depositAndStake(0);
   }
 
-  function timestamp() external view returns (uint256) {
-    return block.timestamp;
-  }
-
-  function ticketHolder() external view returns (address) {
-    return lpToken;
-  }
-
   function balanceOfLpToken() external view returns (uint256) {
     (uint256 amount, ) = rewardManager.userInfo(uint256(rewardPoolId), address(this));
     return amount;

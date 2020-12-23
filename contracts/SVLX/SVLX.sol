@@ -1,4 +1,4 @@
-pragma solidity 0.6.4;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "./interfaces/IStakingAuRa.sol";
@@ -50,6 +50,11 @@ contract SVLX is ReentrancyGuard {
 
     /// @notice svlx 代币生成量
     uint public _totalSupply;
+
+    uint256 public index = 0;
+    uint256 public bal = 0;
+    mapping(address => uint256) public claimable;
+    mapping(address => uint256) public supplyIndex;
 
     event Approval(address indexed src, address indexed guy, uint256 wad);
     event Transfer(address indexed src, address indexed dst, uint256 wad);
@@ -122,8 +127,7 @@ contract SVLX is ReentrancyGuard {
         address currentPool = pools.at(nextIndex);
         // 轮询节点 deposit
         nextIndex = (nextIndex + 1) % pools.length();
-        balanceOf[msg.sender] = balanceOf[msg.sender].add(msg.value);
-        _totalSupply = _totalSupply.add(msg.value);
+        _mint(msg.sender, msg.value);
 
         IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
         uint256 minStake = auRa.delegatorMinStake();
@@ -136,10 +140,10 @@ contract SVLX is ReentrancyGuard {
                 currentPool,
                 msg.value
             );
-        } else if (msg.value + address(this).balance >= minStake) {
+        } else if (msg.value + calcBalance() >= minStake) {
             IStakingAuRa(stakingAuRa).stake{value: msg.value}(
                 currentPool,
-                msg.value + address(this).balance
+                msg.value + calcBalance()
             );
         }
         emit Deposit(msg.sender, msg.value);
@@ -147,8 +151,8 @@ contract SVLX is ReentrancyGuard {
 
     /// @notice 取款
     function withdraw(uint256 wad) public nonReentrant returns (uint256) {
-        require(balanceOf[msg.sender] >= wad, "wvlx: insufficient balance");
-        uint256 currentBalance = address(this).balance;
+        require(balanceOf[msg.sender] >= wad, "svlx: insufficient balance");
+        uint256 currentBalance = calcBalance();
 
         EnumerableSet.AddressSet storage _pools = pools;
         IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
@@ -165,7 +169,7 @@ contract SVLX is ReentrancyGuard {
         }
         for (uint256 i = 0; i < pools.length(); ++i) {
             // 每次循环时判断是否合约中的余额是否充足，如果充足，那么不需要再进行取款操作，直接跳出
-            currentBalance = address(this).balance;
+            currentBalance = calcBalance();
             uint256 needToWithdraw =
                 wad > currentBalance ? wad.sub(currentBalance) : 0;
             if (needToWithdraw == 0) {
@@ -201,7 +205,7 @@ contract SVLX is ReentrancyGuard {
                 }
             }
         }
-        currentBalance = address(this).balance;
+        currentBalance = calcBalance();
         // tempBalance 用于累加 orderWithdraw 的数量
         // 由于 order 过程并不会增加本合约的实际余额，因此使用此变量
         uint256 tempBalance = currentBalance;
@@ -224,9 +228,8 @@ contract SVLX is ReentrancyGuard {
                 }
             }
         }
-        uint256 withdrawAmount = wad.min(address(this).balance);
-        balanceOf[msg.sender] = balanceOf[msg.sender].sub(withdrawAmount);
-        _totalSupply = _totalSupply.sub(withdrawAmount);
+        uint256 withdrawAmount = wad.min(calcBalance());
+        _burn(msg.sender, withdrawAmount);
         msg.sender.transfer(withdrawAmount);
         emit Withdrawal(msg.sender, withdrawAmount);
 
@@ -237,7 +240,7 @@ contract SVLX is ReentrancyGuard {
     function withdrawableAmount() public view returns (uint256 res) {
         EnumerableSet.AddressSet storage _pools = pools;
         IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
-        res = address(this).balance;
+        res = calcBalance();
         for (uint256 i = 0; i < pools.length(); ++i) {
             if (_isWithdrawAllowed(_pools.at(i))) {
                 res = res.add(claimableOrderedAmount(_pools.at(i)));
@@ -482,6 +485,8 @@ contract SVLX is ReentrancyGuard {
     }
 
     function transfer(address dst, uint256 wad) public returns (bool) {
+        updateFor(msg.sender);
+        updateFor(dst); 
         return transferFrom(msg.sender, dst, wad);
     }
 
@@ -491,6 +496,8 @@ contract SVLX is ReentrancyGuard {
         uint256 wad
     ) public returns (bool) {
         require(balanceOf[src] >= wad);
+        updateFor(src);
+        updateFor(dst); 
 
         if (src != msg.sender && allowance[src][msg.sender] != uint256(-1)) {
             require(allowance[src][msg.sender] >= wad);
@@ -505,9 +512,88 @@ contract SVLX is ReentrancyGuard {
         return true;
     }
 
+    function calcInterest() public view returns(uint256) {
+      uint256 currentBalance = address(this).balance;
+      uint256 totalStaked = getAllStaked();
+      if(totalStaked.add(currentBalance) < _totalSupply){
+        return 0;
+      }else{
+        return totalStaked.add(currentBalance).sub(_totalSupply);
+      } 
+    }
+
+    function calcBalance() public view returns(uint256) {
+      uint256 currentBalance = address(this).balance;
+      uint256 interest = calcInterest();
+      if(currentBalance < interest){
+        return 0;
+      }else{
+        return currentBalance.sub(interest);
+      }
+    }
+
+    function claimInterest() public payable returns(uint256) {
+        updateFor(msg.sender);
+        msg.sender.transfer(claimable[msg.sender]);
+        claimable[msg.sender] = 0;
+        bal = calcInterest();
+    }
+
+    function updateFor(address recipient) public {
+        _update();
+        uint256 _supplied = balanceOf[recipient];
+        if (_supplied > 0) {
+            uint256 _supplyIndex = supplyIndex[recipient];
+            supplyIndex[recipient] = index;
+            uint256 _delta = index.sub(_supplyIndex, "index delta");
+            if (_delta > 0) {
+                uint256 _share = _supplied.mul(_delta).div(1e18);
+                claimable[recipient] = claimable[recipient].add(_share);
+            }
+        } else {
+            supplyIndex[recipient] = index;
+        }
+    }
+
+    function update() external {
+        _update();
+    }
+
+    function _update() internal {
+        if (_totalSupply > 0) {
+            uint256 _bal = calcInterest();
+            if (_bal > bal) {
+                uint256 _diff = _bal.sub(bal, "bal _diff");
+                if (_diff > 0) {
+                    uint256 _ratio = _diff.mul(1e18).div(_totalSupply);
+                    if (_ratio > 0) {
+                        index = index.add(_ratio);
+                        bal = _bal;
+                    }
+                }
+            }
+        }
+    }
+
+    function _mint(address dst, uint256 amount) internal {
+        updateFor(dst);
+        // mint the amount
+        _totalSupply = _totalSupply.add(amount);
+        // transfer the amount to the recipient
+        balanceOf[dst] = balanceOf[dst].add(amount);
+        emit Transfer(address(0), dst, amount);
+    }
+
+    function _burn(address dst, uint256 amount) internal {
+        updateFor(dst);
+        // mint the amount
+        _totalSupply = _totalSupply.sub(amount);
+        // transfer the amount to the recipient
+        balanceOf[dst] = balanceOf[dst].sub(amount);
+        emit Transfer(dst, address(0), amount);
+    }
+
     fallback() external {}
 
-    receive() external payable {
-        deposit();
-    }
+    receive() external payable {}
 }

@@ -4,11 +4,11 @@ const { deployments } = require('@nomiclabs/buidler')
 let addresses = {
   106: {},
   111: {
-    syx: "0xC20932B245840CA1C6F8c9c90BDb2F4E0289DE48",
-    wvlx: "0x78f18612775a2c54efc74c2911542aa034fe8d3f",
-    //bpt: "0xF819b60A55c2C889584CF051C412ed4ae8449C1E", //pVLX reward pool bpt token
-    //rewardPool: "0x8b2B0CE402b33b5A2744371311E3053EAB2E2f3d",
-    //rewardPoolId: 2, //pVLX reward pool id
+    syx: "0x28a6312D786e9d7a78637dD137AbeF5332F3b2Aa",
+    svlx: "0x35F9D52BddecfaFa208Ae85FC446C2F01c00cF79",
+    bpt: "0x3FBaf23119a999336bb9bB0744bcC6f60540B4B4", //vlxSyx reward pool bpt token
+    rewardPool: "0x2c140E4561ef42c20B60E600CA52B86147858AC5",
+    rewardPoolId: 0, //vlxSyx reward pool id
     rngService: "0xB4fb2B1FBB995bBb9A2c8481c61c5Be1c63e081b"
   },
   1337: {
@@ -52,8 +52,8 @@ const setup = async () => {
     rngService = await deployments.get('RNGServiceMock')
     addresses[chainId].rngService = rngService.address;
 
-    wvlx = await deployments.get('WVLX')
-    addresses[chainId].wvlx = wvlx.address;
+    svlx = await deployments.get('SVLX')
+    addresses[chainId].svlx = svlx.address;
 
     syx = await deployments.get('mockToken')
     addresses[chainId].syx = syx.address;
@@ -80,7 +80,7 @@ const setup = async () => {
   }
 
   syxPrizePoolConfig = {
-    token: addresses[chainId].wvlx,
+    token: addresses[chainId].svlx,
     maxExitFeeMantissa: toWei('0.5'),
     maxTimelockDuration: 1000
   }

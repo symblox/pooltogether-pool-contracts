@@ -3,7 +3,7 @@
 pragma solidity >=0.6.0 <0.7.0;
 import '@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol';
 import '../../interface/ISponsor.sol';
-import '../../interface/IWvlx.sol';
+import '../../interface/ISvlx.sol';
 import '../PrizePool.sol';
 
 contract SyxPrizePool is PrizePool {
@@ -83,9 +83,7 @@ contract SyxPrizePool is PrizePool {
 
     _mint(to, amount, controlledToken, referrer);
 
-    // Cast lpToken from address to address payable
-    address payable recipient = address(uint160(address(_token())));
-    recipient.sendValue(msg.value);
+    ISvlx(address(_token())).deposit{ value: msg.value}();
     _supply(amount);
 
     emit Deposited(operator, to, controlledToken, amount, referrer);
@@ -107,14 +105,15 @@ contract SyxPrizePool is PrizePool {
 
     // redeem the tickets less the fee
     uint256 amountLessFee = amount.sub(exitFee);
+    uint256 withdrawAmount = _redeem(amount);
     uint256 redeemed = _redeem(amountLessFee);
 
-    //TODO: When the amount of WVLX available is less than the amount entered, only the available amount is withdrawn
-    IWvlx(address(_token())).withdraw(redeemed);
+    //TODO: When the amount of SVLX available is less than the amount entered, only the available amount is withdrawn
+    ISvlx(address(_token())).withdraw(withdrawAmount);
     if (exitFee > 0) {
       if (address(sponsor) != address(0)) {
-        _mint(address(sponsor), exitFee, controlledToken, address(0));
-        sponsor.depositAll(controlledToken, 0);
+        //_mint(address(sponsor), exitFee, controlledToken, address(0));
+        sponsor.depositAndStake{value: address(this).balance}(0);
       }
     }
     msg.sender.transfer(redeemed);
@@ -159,12 +158,17 @@ contract SyxPrizePool is PrizePool {
         uint256 shareMantissa = FixedPoint.calculateMantissa(balances[i], totalWithdrawal);
         uint256 transferAmount = FixedPoint.multiplyUintByMantissa(redeemed, shareMantissa);
         //TODO: When the amount of WVLX available is less than the amount entered, only the available amount is withdrawn
-        IWvlx(address(_token())).withdraw(transferAmount);
+        ISvlx(address(_token())).withdraw(transferAmount);
         address(uint160(users[i])).transfer(transferAmount);
         emit TimelockedWithdrawalSwept(operator, users[i], balances[i], transferAmount);
       }
     }
 
     return totalWithdrawal;
+  }
+
+  function claimInterest() public {
+    ISvlx(address(_token())).claimInterest();
+    sponsor.depositAndStake{value: address(this).balance}(0);
   }
 }
