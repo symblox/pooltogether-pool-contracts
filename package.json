@@ -30,7 +30,7 @@
     "postpublish": "PACKAGE_VERSION=$(./scripts/package-version.sh) && git tag -ae v$PACKAGE_VERSION && git push --tags",
     "update-gitbook-networks": "./scripts/update-gitbook-networks.sh",
     "mint": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run --network localhost scripts/mint.js",
-    "setup": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/setup.js --network "
+    "setup": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/setup-syx.js --network "
   },
   "dependencies": {
     "@opengsn/gsn": "^2.0.1",
@@ -60,6 +60,8 @@
     "ganache-cli": "^6.12.0",
     "minimist": "^1.2.5",
     "mocha-junit-reporter": "1.23.3",
+    "prettier": "^2.2.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.2",
     "shelljs": "0.8.3",
     "solc": "0.6.4",
     "solhint": "3.0.0",

@@ -16,7 +16,7 @@ contract SingleRandomWinnerCoin is PeriodicPrizeStrategy {
 
   function startAward() public override requireCanStartAward {
     if (address(sponsor) != address(0)) {
-      sponsor.getReward();
+      sponsor.claimRewards();
     }
     super.startAward();
   }
@@ -24,16 +24,11 @@ contract SingleRandomWinnerCoin is PeriodicPrizeStrategy {
   function _distribute(uint256 randomNumber) internal override {
     uint256 prize = prizePool.captureAwardBalance();
     address winner = ticket.draw(randomNumber);
-    if (address(sponsor) != address(0)) {
-      if (winner != address(0) && winner != sponsor.ticketHolder()) {
-        _awardTickets(winner, prize);
-        _awardAllExternalTokens(winner);
-      }
-    } else {
+
       if (winner != address(0)) {
         _awardTickets(winner, prize);
         _awardAllExternalTokens(winner);
       }
-    }
+    
   }
 }

@@ -3,7 +3,7 @@ pragma solidity >=0.6.0 <0.7.0;
 interface ISponsor {
   function ticketHolder() external view returns (address);
 
-  function getReward() external;
+  function claimRewards() external;
 
   function deposit(
     address tokenIn,

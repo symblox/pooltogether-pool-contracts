@@ -9,6 +9,11 @@ interface IBPool {
     uint256 minPoolAmountOut
   ) external returns (uint256 poolAmountOut);
 
+  function joinswapWTokenIn(uint256 minPoolAmountOut)
+    external
+    payable
+    returns (uint256 poolAmountOut);
+
   function exitswapPoolAmountIn(
     address tokenOut,
     uint256 poolAmountIn,

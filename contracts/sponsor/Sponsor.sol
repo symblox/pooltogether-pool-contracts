@@ -47,9 +47,8 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
   }
 
   receive() external payable {
-    uint256 balance = address(this).balance;
-    prizePool.depositVlxTo{ value: balance }(address(this), balance, ticket, address(0));
-    depositAll(ticket, 0);
+    // prizePool.depositVlxTo{ value: balance }(address(this), balance, ticket, address(0));
+    depositAndStake(0);
   }
 
   function timestamp() external view returns (uint256) {
@@ -69,7 +68,7 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
     return rewardManager.pendingSyx(uint256(rewardPoolId), address(this));
   }
 
-  function getReward() external {
+  function claimRewards() external {
     IERC20 syx = IERC20(rewardManager.syx());
     rewardManager.getReward(uint256(rewardPoolId));
 
@@ -92,8 +91,9 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
     uint256 newBalance = rewardManager.deposit(uint256(rewardPoolId), amount);
     require(newBalance - currBalance == amount, 'ERR_STAKE_REWARD');
     uint256 syxAmount = syx.balanceOf(address(this));
-    syx.safeTransfer(msg.sender, syxAmount);
-    emit LogReward(msg.sender, syxAmount);
+    syx.safeTransfer(address(prizePool), syxAmount);
+
+    emit LogReward(address(prizePool), syxAmount);
     emit LogStake(msg.sender, newBalance);
   }
 
@@ -110,48 +110,60 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
     require(currBalance - newBalance == lpTokenAmount, 'ERR_UNSTAKE_REWARD');
 
     uint256 syxAmount = syx.balanceOf(address(this));
-    syx.safeTransfer(msg.sender, syxAmount);
+    syx.safeTransfer(address(prizePool), syxAmount);
 
-    emit LogReward(msg.sender, syxAmount);
+    emit LogReward(address(prizePool), syxAmount);
     emit LogUnstake(msg.sender, lpTokenAmount);
   }
 
-  /**
-   * @dev Deposit first to the liquidity pool and then the reward pool to earn rewards
-   * @param tokenIn ERC20 address to deposit
-   * @param tokenAmountIn deposit amount, in wei
-   */
-  function deposit(
-    address tokenIn,
-    uint256 tokenAmountIn,
-    uint256 minPoolAmountOut
-  ) external validBpt(tokenIn) returns (uint256) {
-    IERC20 tokenDeposit = IERC20(tokenIn);
-    require(tokenDeposit.allowance(msg.sender, address(this)) >= tokenAmountIn, 'ERR_ALLOWANCE');
-    // transfer the tokens here
-    tokenDeposit.safeTransferFrom(msg.sender, address(this), tokenAmountIn);
-    return depositAll(tokenIn, minPoolAmountOut);
-  }
+  // /**
+  //  * @dev Deposit first to the liquidity pool and then the reward pool to earn rewards
+  //  * @param tokenIn ERC20 address to deposit
+  //  * @param tokenAmountIn deposit amount, in wei
+  //  */
+  // function deposit(
+  //   address tokenIn,
+  //   uint256 tokenAmountIn,
+  //   uint256 minPoolAmountOut
+  // ) external validBpt(tokenIn) returns (uint256) {
+  //   IERC20 tokenDeposit = IERC20(tokenIn);
+  //   require(tokenDeposit.allowance(msg.sender, address(this)) >= tokenAmountIn, 'ERR_ALLOWANCE');
+  //   // transfer the tokens here
+  //   tokenDeposit.safeTransferFrom(msg.sender, address(this), tokenAmountIn);
+  //   return depositAll(tokenIn, minPoolAmountOut);
+  // }
 
-  function depositAll(address tokenIn, uint256 minPoolAmountOut)
-    public
-    validBpt(tokenIn)
-    returns (uint256 poolAmountOut)
-  {
-    IERC20 tokenDeposit = IERC20(tokenIn);
-    // deposit to the bpool
-    uint256 balance = tokenDeposit.balanceOf(address(this));
-    if (tokenDeposit.allowance(address(this), lpToken) < balance) {
-      tokenDeposit.approve(lpToken, balance);
+//   function depositAll(address tokenIn, uint256 minPoolAmountOut)
+//     public
+//     validBpt(tokenIn)
+//     returns (uint256 poolAmountOut)
+//   {
+//     IERC20 tokenDeposit = IERC20(tokenIn);
+//     // deposit to the bpool
+//     uint256 balance = tokenDeposit.balanceOf(address(this));
+//     if (tokenDeposit.allowance(address(this), lpToken) < balance) {
+//       tokenDeposit.approve(lpToken, balance);
+//     }
+//     poolAmountOut = IBPool(lpToken).joinswapExternAmountIn(tokenIn, balance, minPoolAmountOut);
+//     require(poolAmountOut > 0, 'ERR_BPOOL_DEPOSIT');
+
+//     // stake to RewardManager
+//     stakeLpToken(poolAmountOut);
+
+//     emit LogDeposit(msg.sender, poolAmountOut);
+//   }
+
+    function depositAndStake(uint256 minPoolAmountOut) public payable returns (uint256 poolAmountOut)
+    {
+        poolAmountOut = IBPool(lpToken).joinswapWTokenIn{value: address(this).balance}(
+            minPoolAmountOut
+        );
+        require(poolAmountOut > 0, "ERR_BPOOL_DEPOSIT");
+        // stake to RewardManager
+        stakeLpToken(poolAmountOut);
+
+        emit LogDeposit(msg.sender, poolAmountOut);
     }
-    poolAmountOut = IBPool(lpToken).joinswapExternAmountIn(tokenIn, balance, minPoolAmountOut);
-    require(poolAmountOut > 0, 'ERR_BPOOL_DEPOSIT');
-
-    // stake to RewardManager
-    stakeLpToken(poolAmountOut);
-
-    emit LogDeposit(msg.sender, poolAmountOut);
-  }
 
   /**
    * @dev Unstake from the reward pool, then withdraw from the liquidity pool
