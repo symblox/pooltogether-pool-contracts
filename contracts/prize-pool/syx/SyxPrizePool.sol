@@ -109,12 +109,12 @@ contract SyxPrizePool is PrizePool {
         // redeem the tickets less the fee
         uint256 amountLessFee = actualWithdrawAmount.sub(exitFee);
         uint256 redeemed = _redeem(amountLessFee);
-        if (exitFee > 0) {
-          uint256 curBalance = address(this).balance;
-          if (address(sponsor) != address(0) && curBalance > 0) {
-            sponsor.depositAndStake{value: curBalance}(0);
-          }
-        }
+        // if (exitFee > 0) {
+        //   uint256 curBalance = address(this).balance;
+        //   if (address(sponsor) != address(0) && curBalance > 0) {
+        //     sponsor.depositAndStake{value: curBalance}(0);
+        //   }
+        // }
         msg.sender.transfer(redeemed);
 
         emit InstantWithdrawal(_msgSender(), from, controlledToken, amount, redeemed, exitFee);
@@ -204,10 +204,10 @@ contract SyxPrizePool is PrizePool {
 
   function claimInterest() public payable {
     ISvlx svlx = ISvlx(address(_token()));
-    uint256 balanceBefore = address(this).balance;
     svlx.claimInterest();
-    uint256 balanceAfter = address(this).balance;
-    require(balanceAfter.sub(balanceBefore) > 0, "claim interest amount error");
-    sponsor.depositAndStake{value: balanceAfter}(0);
+    uint256 curBalance = address(this).balance;
+    if(curBalance > 0){
+      sponsor.depositAndStake{value: curBalance}(0);
+    }
   }
 }
