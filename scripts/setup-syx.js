@@ -5,7 +5,7 @@ let addresses = {
   106: {},
   111: {
     syx: "0x28a6312D786e9d7a78637dD137AbeF5332F3b2Aa",
-    svlx: "0x35F9D52BddecfaFa208Ae85FC446C2F01c00cF79",
+    svlx: "0x15DD5bC03870480Ff8A7eFd003Cd53Cb492ee39F",
     bpt: "0x3FBaf23119a999336bb9bB0744bcC6f60540B4B4", //vlxSyx reward pool bpt token
     rewardPool: "0x2c140E4561ef42c20B60E600CA52B86147858AC5",
     rewardPoolId: 0, //vlxSyx reward pool id
@@ -98,7 +98,7 @@ const setup = async () => {
   const sponsorshipAddress = await prizeStrategy.sponsorship()
   console.log({ sponsorshipAddress })
 
-  if(isTestEnvironment){
+  //if(isTestEnvironment){
     let createTx = await builder.createSponsor()
     let createEvents = await getEvents(createTx)
     let sponsorCreatedEvent = createEvents.find(e => e.name == 'SponsorCreated')
@@ -109,9 +109,9 @@ const setup = async () => {
     await sponsor.initialize(prizePool.address,ticketAddress,addresses[chainId].bpt,addresses[chainId].rewardPool,addresses[chainId].rewardPoolId)
     await prizeStrategy.setSponsor(sponsor.address)
     await prizePool.setSponsor(sponsor.address)
-  }else{
-    //Manually call after the transaction pool is deployed
-  }
+  // }else{
+  //   //Manually call after the transaction pool is deployed
+  // }
 }
 
 setup()

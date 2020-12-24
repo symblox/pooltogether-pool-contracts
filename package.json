@@ -20,7 +20,7 @@
     "console": "buidler console --network",
     "coverage": "rm -rf build cache test-results.xml && USE_LITERAL_CONTENT=false buidler coverage --network coverage --temp build",
     "gas": "REPORT_GAS=true buidler test --network localhost",
-    "deploy": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler deploy --write true --network",
+    "deploy": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler deploy --write true --reset --network",
     "deploy-drips": "buidler run ./js/deployDripTokens.js --network",
     "testnet-txs": "buidler run ./js/runTestnetTransactions.js --network",
     "etherscan-verify": "buidler run ./scripts/verify.js --network",
@@ -30,7 +30,7 @@
     "postpublish": "PACKAGE_VERSION=$(./scripts/package-version.sh) && git tag -ae v$PACKAGE_VERSION && git push --tags",
     "update-gitbook-networks": "./scripts/update-gitbook-networks.sh",
     "mint": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run --network localhost scripts/mint.js",
-    "setup": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/setup-syx.js --network "
+    "setup": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/setup-syx.js --network"
   },
   "dependencies": {
     "@opengsn/gsn": "^2.0.1",
