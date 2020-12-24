@@ -95,32 +95,66 @@ contract SyxPrizePool is PrizePool {
     address controlledToken,
     uint256 maximumExitFee
   ) external override nonReentrant onlyControlledToken(controlledToken) returns (uint256) {
-    (uint256 exitFee, uint256 burnedCredit) = _calculateEarlyExitFeeLessBurnedCredit(from, controlledToken, amount);
-    require(exitFee <= maximumExitFee, 'PrizePool/exit-fee-exceeds-user-maximum');
-
-    // burn the credit
-    _burnCredit(from, controlledToken, burnedCredit);
-    // burn the tickets
-    ControlledToken(controlledToken).controllerBurnFrom(_msgSender(), from, amount);
-
-    // redeem the tickets less the fee
-    uint256 amountLessFee = amount.sub(exitFee);
     uint256 withdrawAmount = _redeem(amount);
-    uint256 redeemed = _redeem(amountLessFee);
+    //When the amount of SVLX available is less than the amount entered, only the available amount is withdrawn
+    uint256 actualWithdrawAmount = ISvlx(address(_token())).withdraw(withdrawAmount);
 
-    //TODO: When the amount of SVLX available is less than the amount entered, only the available amount is withdrawn
-    ISvlx(address(_token())).withdraw(withdrawAmount);
-    if (exitFee > 0) {
-      if (address(sponsor) != address(0)) {
-        //_mint(address(sponsor), exitFee, controlledToken, address(0));
-        sponsor.depositAndStake{value: address(this).balance}(0);
-      }
+    if(actualWithdrawAmount>0){
+        (uint256 exitFee, uint256 burnedCredit) = _calculateEarlyExitFeeLessBurnedCredit(from, controlledToken, actualWithdrawAmount);
+        require(exitFee <= maximumExitFee, 'PrizePool/exit-fee-exceeds-user-maximum');
+        // burn the credit
+        _burnCredit(from, controlledToken, burnedCredit);
+        // burn the tickets
+        ControlledToken(controlledToken).controllerBurnFrom(_msgSender(), from, actualWithdrawAmount);
+        // redeem the tickets less the fee
+        uint256 amountLessFee = actualWithdrawAmount.sub(exitFee);
+        uint256 redeemed = _redeem(amountLessFee);
+        if (exitFee > 0) {
+          uint256 curBalance = address(this).balance;
+          if (address(sponsor) != address(0) && curBalance > 0) {
+            sponsor.depositAndStake{value: curBalance}(0);
+          }
+        }
+        msg.sender.transfer(redeemed);
+
+        emit InstantWithdrawal(_msgSender(), from, controlledToken, amount, redeemed, exitFee);
+        return exitFee;
+    }else{
+        emit InstantWithdrawal(_msgSender(), from, controlledToken, amount, 0, 0);
+        return 0;
+    } 
+  }
+
+  /// @notice Withdraw assets from the Prize Pool by placing them into the timelock.
+  /// The timelock is used to ensure that the tickets have contributed their fair share of the prize.
+  /// @dev Note that if the user has previously timelocked funds then this contract will try to sweep them.
+  /// If the existing timelocked funds are still locked, then the incoming
+  /// balance is added to their existing balance and the new timelock unlock timestamp will overwrite the old one.
+  /// @param from The address to withdraw from
+  /// @param amount The amount to withdraw
+  /// @param controlledToken The type of token being withdrawn
+  /// @return The timestamp from which the funds can be swept
+  function withdrawWithTimelockFrom(
+    address from,
+    uint256 amount,
+    address controlledToken
+  ) external override nonReentrant onlyControlledToken(controlledToken) returns (uint256) {
+    ISvlx svlx = ISvlx(address(_token()));
+    uint256 maxWithdrawableAmount = svlx.withdrawableAmount();
+    uint256 actualWithdrawAmount = amount;
+    if(maxWithdrawableAmount < amount){
+      actualWithdrawAmount = maxWithdrawableAmount;
     }
-    msg.sender.transfer(redeemed);
+    uint256 blockTime = _currentTime();
+    (uint256 lockDuration, uint256 burnedCredit) = _calculateTimelockDuration(from, controlledToken, actualWithdrawAmount);
+    uint256 unlockTimestamp = blockTime.add(lockDuration);
+    _burnCredit(from, controlledToken, burnedCredit);
+    ControlledToken(controlledToken).controllerBurnFrom(_msgSender(), from, actualWithdrawAmount);
+    _mintTimelock(from, actualWithdrawAmount, unlockTimestamp);
+    emit TimelockedWithdrawal(_msgSender(), from, controlledToken, actualWithdrawAmount, unlockTimestamp);
 
-    emit InstantWithdrawal(_msgSender(), from, controlledToken, amount, redeemed, exitFee);
-
-    return exitFee;
+    // return the block at which the funds will be available
+    return unlockTimestamp;
   }
 
   /// @notice Sweep available timelocked balances to their owners.  The full balances will be swept to the owners.
@@ -157,8 +191,9 @@ contract SyxPrizePool is PrizePool {
         delete _unlockTimestamps[users[i]];
         uint256 shareMantissa = FixedPoint.calculateMantissa(balances[i], totalWithdrawal);
         uint256 transferAmount = FixedPoint.multiplyUintByMantissa(redeemed, shareMantissa);
-        //TODO: When the amount of WVLX available is less than the amount entered, only the available amount is withdrawn
-        ISvlx(address(_token())).withdraw(transferAmount);
+        //When the amount of SVLX available is less than the amount entered, only the available amount is withdrawn
+        uint256 actualTransferAmount = ISvlx(address(_token())).withdraw(transferAmount);
+        require(actualTransferAmount >= transferAmount, "withdraw amount error");
         address(uint160(users[i])).transfer(transferAmount);
         emit TimelockedWithdrawalSwept(operator, users[i], balances[i], transferAmount);
       }
@@ -167,8 +202,12 @@ contract SyxPrizePool is PrizePool {
     return totalWithdrawal;
   }
 
-  function claimInterest() public {
-    ISvlx(address(_token())).claimInterest();
-    sponsor.depositAndStake{value: address(this).balance}(0);
+  function claimInterest() public payable {
+    ISvlx svlx = ISvlx(address(_token()));
+    uint256 balanceBefore = address(this).balance;
+    svlx.claimInterest();
+    uint256 balanceAfter = address(this).balance;
+    require(balanceAfter.sub(balanceBefore) > 0, "claim interest amount error");
+    sponsor.depositAndStake{value: balanceAfter}(0);
   }
 }

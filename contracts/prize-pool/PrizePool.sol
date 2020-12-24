@@ -309,7 +309,7 @@ abstract contract PrizePool is
     address from,
     uint256 amount,
     address controlledToken
-  ) external override nonReentrant onlyControlledToken(controlledToken) returns (uint256) {
+  ) external virtual override nonReentrant onlyControlledToken(controlledToken) returns (uint256) {
     uint256 blockTime = _currentTime();
     (uint256 lockDuration, uint256 burnedCredit) = _calculateTimelockDuration(from, controlledToken, amount);
     uint256 unlockTimestamp = blockTime.add(lockDuration);

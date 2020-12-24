@@ -512,10 +512,15 @@ contract SVLX is ReentrancyGuard {
         return true;
     }
 
+    function getClaimableCurrent(address account) public returns(uint256) {
+      updateFor(account);
+      return claimable[account];
+    }
+
     function calcInterest() public view returns(uint256) {
       uint256 currentBalance = address(this).balance;
       uint256 totalStaked = getAllStaked();
-      if(totalStaked.add(currentBalance) < _totalSupply){
+      if(totalStaked.add(currentBalance) <= _totalSupply){
         return 0;
       }else{
         return totalStaked.add(currentBalance).sub(_totalSupply);
@@ -525,7 +530,7 @@ contract SVLX is ReentrancyGuard {
     function calcBalance() public view returns(uint256) {
       uint256 currentBalance = address(this).balance;
       uint256 interest = calcInterest();
-      if(currentBalance < interest){
+      if(currentBalance <= interest){
         return 0;
       }else{
         return currentBalance.sub(interest);

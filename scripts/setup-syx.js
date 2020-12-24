@@ -5,7 +5,7 @@ let addresses = {
   106: {},
   111: {
     syx: "0x28a6312D786e9d7a78637dD137AbeF5332F3b2Aa",
-    svlx: "0x15DD5bC03870480Ff8A7eFd003Cd53Cb492ee39F",
+    svlx: "0x88902bF5c631BdD251AC5cf9803B1D397E0F4220",
     bpt: "0x3FBaf23119a999336bb9bB0744bcC6f60540B4B4", //vlxSyx reward pool bpt token
     rewardPool: "0x2c140E4561ef42c20B60E600CA52B86147858AC5",
     rewardPoolId: 0, //vlxSyx reward pool id

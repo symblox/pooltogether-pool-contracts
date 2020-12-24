@@ -8,4 +8,6 @@ interface ISvlx {
   function claimInterest() external;
 
   function claimable(address account) external returns(uint256);
+
+  function withdrawableAmount() external returns(uint256);
 }
