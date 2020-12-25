@@ -4,12 +4,12 @@ const { deployments } = require('@nomiclabs/buidler')
 let addresses = {
   106: {},
   111: {
-    syx: "0x28a6312D786e9d7a78637dD137AbeF5332F3b2Aa",
-    svlx: "0x88902bF5c631BdD251AC5cf9803B1D397E0F4220",
-    bpt: "0x3FBaf23119a999336bb9bB0744bcC6f60540B4B4", //vlxSyx reward pool bpt token
-    rewardPool: "0x2c140E4561ef42c20B60E600CA52B86147858AC5",
+    syx: '0x28a6312D786e9d7a78637dD137AbeF5332F3b2Aa',
+    svlx: '0xCd0739c910aA4d118F751beE38712409479D4782',
+    bpt: '0x3FBaf23119a999336bb9bB0744bcC6f60540B4B4', //vlxSyx reward pool bpt token
+    rewardPool: '0x2c140E4561ef42c20B60E600CA52B86147858AC5',
     rewardPoolId: 0, //vlxSyx reward pool id
-    rngService: "0xB4fb2B1FBB995bBb9A2c8481c61c5Be1c63e081b"
+    rngService: '0xB4fb2B1FBB995bBb9A2c8481c61c5Be1c63e081b'
   },
   1337: {
     rewardPoolId: 0
@@ -48,21 +48,21 @@ const setup = async () => {
   )
   console.log(`builder address: ${builder.address}`)
 
-   if(isTestEnvironment){
+  if (isTestEnvironment) {
     rngService = await deployments.get('RNGServiceMock')
-    addresses[chainId].rngService = rngService.address;
+    addresses[chainId].rngService = rngService.address
 
     svlx = await deployments.get('SVLX')
-    addresses[chainId].svlx = svlx.address;
+    addresses[chainId].svlx = svlx.address
 
     syx = await deployments.get('mockToken')
-    addresses[chainId].syx = syx.address;
+    addresses[chainId].syx = syx.address
     console.log({ syxAddress: syx.address })
 
     const bpt = await deployments.get('mockBpt')
-    addresses[chainId].bpt = bpt.address;
+    addresses[chainId].bpt = bpt.address
     const rewardPool = await deployments.get('mockRewardPool')
-    addresses[chainId].rewardPool = rewardPool.address;
+    addresses[chainId].rewardPool = rewardPool.address
   }
 
   singleRandomWinnerConfig = {
@@ -99,16 +99,22 @@ const setup = async () => {
   console.log({ sponsorshipAddress })
 
   //if(isTestEnvironment){
-    let createTx = await builder.createSponsor()
-    let createEvents = await getEvents(createTx)
-    let sponsorCreatedEvent = createEvents.find(e => e.name == 'SponsorCreated')
-    const sponsor = await ethers.getContractAt('Sponsor', sponsorCreatedEvent.args.sponsor, wallet)
-    console.log(`Sponsor address: ${sponsor.address}`)
+  let createTx = await builder.createSponsor()
+  let createEvents = await getEvents(createTx)
+  let sponsorCreatedEvent = createEvents.find(e => e.name == 'SponsorCreated')
+  const sponsor = await ethers.getContractAt('Sponsor', sponsorCreatedEvent.args.sponsor, wallet)
+  console.log(`Sponsor address: ${sponsor.address}`)
 
-    //Initialize first, set owner and then setSponsor
-    await sponsor.initialize(prizePool.address,ticketAddress,addresses[chainId].bpt,addresses[chainId].rewardPool,addresses[chainId].rewardPoolId)
-    await prizeStrategy.setSponsor(sponsor.address)
-    await prizePool.setSponsor(sponsor.address)
+  //Initialize first, set owner and then setSponsor
+  await sponsor.initialize(
+    prizePool.address,
+    ticketAddress,
+    addresses[chainId].bpt,
+    addresses[chainId].rewardPool,
+    addresses[chainId].rewardPoolId
+  )
+  await prizeStrategy.setSponsor(sponsor.address)
+  await prizePool.setSponsor(sponsor.address)
   // }else{
   //   //Manually call after the transaction pool is deployed
   // }
