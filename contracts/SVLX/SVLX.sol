@@ -227,6 +227,7 @@ contract SVLX is ReentrancyGuard {
                 ) {
                     tempBalance += maxOrderWithdrawal;
                     auRa.orderWithdraw(pools.at(i), int256(maxOrderWithdrawal));
+                    emit OrderWithdraw(pools.at(i), int256(maxOrderWithdrawal));
                 }
             }
         }
