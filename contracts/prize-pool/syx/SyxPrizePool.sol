@@ -202,9 +202,16 @@ contract SyxPrizePool is PrizePool {
     return totalWithdrawal;
   }
 
-  function claimInterest() public payable {
-    ISvlx svlx = ISvlx(address(_token()));
-    svlx.claimInterest();
+  function claimAndDepositInterest() public payable {
+    claimInterest();
+    depositInterest();
+  }
+
+  function claimInterest() public {
+    ISvlx(address(_token())).claimInterest();
+  }
+
+  function depositInterest() public payable {
     uint256 curBalance = address(this).balance;
     if(curBalance > 0){
       sponsor.depositAndStake{value: curBalance}(0);

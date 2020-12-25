@@ -131,6 +131,7 @@ contract SVLX is ReentrancyGuard {
 
         IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
         uint256 minStake = auRa.delegatorMinStake();
+        uint256 currentBalance = calcBalance();
         // 若用户存款数量大于最低质押数量，或者当前节点质押数量大于0，说明用户可以正常质押
         if (
             msg.value >= minStake ||
@@ -140,13 +141,14 @@ contract SVLX is ReentrancyGuard {
                 currentPool,
                 msg.value
             );
-        } else if (msg.value + calcBalance() >= minStake) {
-            IStakingAuRa(stakingAuRa).stake{value: msg.value}(
+            emit Deposit(msg.sender, msg.value);
+        } else if (currentBalance >= minStake) {
+            IStakingAuRa(stakingAuRa).stake{value: currentBalance}(
                 currentPool,
-                msg.value + calcBalance()
+                currentBalance
             );
-        }
-        emit Deposit(msg.sender, msg.value);
+            emit Deposit(msg.sender, currentBalance);
+        } 
     }
 
     /// @notice 取款
@@ -237,27 +239,47 @@ contract SVLX is ReentrancyGuard {
     }
 
     /// @notice 查询可直接从合约中取出的数量
+    // function withdrawableAmount() public view returns (uint256 res) {
+        // EnumerableSet.AddressSet storage _pools = pools;
+        // IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
+        // res = calcBalance();
+        // for (uint256 i = 0; i < pools.length(); ++i) {
+        //     if (_isWithdrawAllowed(_pools.at(i))) {
+        //         res = res.add(claimableOrderedAmount(_pools.at(i)));
+        //     }
+        // }
+
+        // for (uint256 i = 0; i < pools.length(); ++i) {
+        //     if (_isWithdrawAllowed(pools.at(i))) {
+        //         uint256 maxAllowed =
+        //             auRa.maxWithdrawAllowed(pools.at(i), address(this));
+        //         // 锁仓数量
+        //         uint256 stakeAmount =
+        //             auRa.stakeAmount(pools.at(i), address(this));
+        //         res = res.add(maxAllowed.min(stakeAmount));
+        //     }
+        // }
+    // }
     function withdrawableAmount() public view returns (uint256 res) {
-        EnumerableSet.AddressSet storage _pools = pools;
         IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
         res = calcBalance();
         for (uint256 i = 0; i < pools.length(); ++i) {
-            if (_isWithdrawAllowed(_pools.at(i))) {
-                res = res.add(claimableOrderedAmount(_pools.at(i)));
-            }
-        }
-
-        for (uint256 i = 0; i < pools.length(); ++i) {
             if (_isWithdrawAllowed(pools.at(i))) {
-                uint256 maxAllowed =
-                    auRa.maxWithdrawAllowed(pools.at(i), address(this));
-                // 锁仓数量
-                uint256 stakeAmount =
-                    auRa.stakeAmount(pools.at(i), address(this));
-                res = res.add(maxAllowed.min(stakeAmount));
+                res = res.add(claimableOrderedAmount(pools.at(i)));
             }
+            uint256 maxAllowed = auRa.maxWithdrawAllowed(pools.at(i), address(this));
+            res = res.add(maxAllowed);
         }
     }
+
+    function getTotalBalanceInPools() public view returns (uint256 res) {
+        IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
+        for (uint256 i = 0; i < pools.length(); ++i) {
+            res = res.add(auRa.orderedWithdrawAmount(pools.at(i), address(this)));
+            res = res.add(auRa.stakeAmount(pools.at(i), address(this)));
+        }
+    }
+    
 
     /// @notice 查询已经像 VELAS 节点申请取出 VLX 的数量，以及到期可取回的区块
     // 返回值 _pools 节点列表
@@ -485,8 +507,6 @@ contract SVLX is ReentrancyGuard {
     }
 
     function transfer(address dst, uint256 wad) public returns (bool) {
-        updateFor(msg.sender);
-        updateFor(dst); 
         return transferFrom(msg.sender, dst, wad);
     }
 
@@ -519,7 +539,7 @@ contract SVLX is ReentrancyGuard {
 
     function calcInterest() public view returns(uint256) {
       uint256 currentBalance = address(this).balance;
-      uint256 totalStaked = getAllStaked();
+      uint256 totalStaked = getTotalBalanceInPools();
       if(totalStaked.add(currentBalance) <= _totalSupply){
         return 0;
       }else{
@@ -581,11 +601,11 @@ contract SVLX is ReentrancyGuard {
     }
 
     function _mint(address dst, uint256 amount) internal {
-        updateFor(dst);
         // mint the amount
         _totalSupply = _totalSupply.add(amount);
         // transfer the amount to the recipient
         balanceOf[dst] = balanceOf[dst].add(amount);
+        updateFor(dst);
         emit Transfer(address(0), dst, amount);
     }
 
