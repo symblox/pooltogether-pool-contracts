@@ -154,6 +154,7 @@ contract SVLX is ReentrancyGuard {
     /// @notice 取款
     function withdraw(uint256 wad) public nonReentrant returns (uint256) {
         require(balanceOf[msg.sender] >= wad, "svlx: insufficient balance");
+        uint256 interest = calcInterest();
         uint256 currentBalance = calcBalance();
 
         EnumerableSet.AddressSet storage _pools = pools;
@@ -171,7 +172,7 @@ contract SVLX is ReentrancyGuard {
         }
         for (uint256 i = 0; i < pools.length(); ++i) {
             // 每次循环时判断是否合约中的余额是否充足，如果充足，那么不需要再进行取款操作，直接跳出
-            currentBalance = calcBalance();
+            currentBalance = address(this).balance.sub(interest);
             uint256 needToWithdraw =
                 wad > currentBalance ? wad.sub(currentBalance) : 0;
             if (needToWithdraw == 0) {
@@ -207,12 +208,12 @@ contract SVLX is ReentrancyGuard {
                 }
             }
         }
-        currentBalance = calcBalance();
+        currentBalance = address(this).balance.sub(interest);
         // tempBalance 用于累加 orderWithdraw 的数量
         // 由于 order 过程并不会增加本合约的实际余额，因此使用此变量
         uint256 tempBalance = currentBalance;
         for (uint256 i = 0; i < pools.length(); ++i) {
-            if (tempBalance > wad || currentBalance > wad) {
+            if (tempBalance >= wad || currentBalance >= wad) {
                 break;
             }
             if (_isWithdrawAllowed(pools.at(i))) {
@@ -220,18 +221,18 @@ contract SVLX is ReentrancyGuard {
                     auRa.maxWithdrawOrderAllowed(pools.at(i), address(this));
                 address _miningAddress =
                     validatorSet.miningByStakingAddress(pools.at(i));
-
                 if (
                     validatorSet.isValidatorOrPending(_miningAddress) &&
                     maxOrderWithdrawal > 0
                 ) {
-                    tempBalance += maxOrderWithdrawal;
-                    auRa.orderWithdraw(pools.at(i), int256(maxOrderWithdrawal));
-                    emit OrderWithdraw(pools.at(i), int256(maxOrderWithdrawal));
+                    uint256 remainingWad = wad.sub(tempBalance);
+                    tempBalance += maxOrderWithdrawal.min(remainingWad);
+                    auRa.orderWithdraw(pools.at(i), int256(maxOrderWithdrawal.min(remainingWad)));
+                    emit OrderWithdraw(pools.at(i), int256(maxOrderWithdrawal.min(remainingWad)));
                 }
             }
         }
-        uint256 withdrawAmount = wad.min(calcBalance());
+        uint256 withdrawAmount = wad.min(address(this).balance.sub(interest));
         _burn(msg.sender, withdrawAmount);
         msg.sender.transfer(withdrawAmount);
         emit Withdrawal(msg.sender, withdrawAmount);
