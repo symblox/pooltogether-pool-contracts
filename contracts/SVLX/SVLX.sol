@@ -2,7 +2,6 @@ pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "./interfaces/IStakingAuRa.sol";
-import "./interfaces/IValidatorSetAuRa.sol";
 import "./libraries/SafeERC20.sol";
 import "./libraries/Math.sol";
 import "./utils/ReentrancyGuard.sol";
@@ -33,8 +32,6 @@ contract SVLX is ReentrancyGuard {
 
     /// @notice stake 合约地址
     address public stakingAuRa;
-
-    address public validatorSetContract;
 
     /// @notice 合约管理员地址
     address public admin;
@@ -81,14 +78,6 @@ contract SVLX is ReentrancyGuard {
     /// @param newStakingAuRa 新地址
     event SetStakingAuRa(address oldStakingAuRa, address newStakingAuRa);
 
-    /// @notice 事件：设置 validatorSetContract 地址
-    /// @param oldValidatorSetContract 旧地址
-    /// @param newValidatorSetContract 新地址
-    event SetValidatorSetContract(
-        address oldValidatorSetContract,
-        address newValidatorSetContract
-    );
-
     /// @notice 事件：设置预备管理员
     /// @param proposedAdmin 预备管理员地址
     event SetProposedAdmin(address proposedAdmin);
@@ -111,7 +100,6 @@ contract SVLX is ReentrancyGuard {
         admin = msg.sender;
         nextIndex = 0;
         stakingAuRa = _stakingAuRa;
-        validatorSetContract = IStakingAuRa(stakingAuRa).validatorSetContract();
     }
 
     modifier onlyAdmin {
@@ -159,8 +147,7 @@ contract SVLX is ReentrancyGuard {
 
         EnumerableSet.AddressSet storage _pools = pools;
         IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
-        IValidatorSetAuRa validatorSet =
-            IValidatorSetAuRa(validatorSetContract);
+        uint256 delegatorMinStake = auRa.delegatorMinStake();
         if (currentBalance < wad) {
             // claim 之前已经 order 过的数量
             // 既然已经 order 过，留在节点中也没用，全部 claim
@@ -188,7 +175,6 @@ contract SVLX is ReentrancyGuard {
                 uint256 stakeAmount =
                     auRa.stakeAmount(pools.at(i), address(this));
                 uint256 maxWithdrawal = maxAllowed.min(stakeAmount);
-                uint256 delegatorMinStake = auRa.delegatorMinStake();
                 if (maxWithdrawal > 0) {
                     // threshold 为不取完的情况下，可取出的最大值
                     uint256 threshold = stakeAmount.sub(delegatorMinStake);
@@ -217,19 +203,21 @@ contract SVLX is ReentrancyGuard {
                 break;
             }
             if (_isWithdrawAllowed(pools.at(i))) {
+                uint256 remainingWad = wad.sub(tempBalance);
                 uint256 maxOrderWithdrawal =
                     auRa.maxWithdrawOrderAllowed(pools.at(i), address(this));
-                address _miningAddress =
-                    validatorSet.miningByStakingAddress(pools.at(i));
-                if (
-                    validatorSet.isValidatorOrPending(_miningAddress) &&
-                    maxOrderWithdrawal > 0
-                ) {
-                    uint256 remainingWad = wad.sub(tempBalance);
-                    tempBalance += maxOrderWithdrawal.min(remainingWad);
-                    auRa.orderWithdraw(pools.at(i), int256(maxOrderWithdrawal.min(remainingWad)));
-                    emit OrderWithdraw(pools.at(i), int256(maxOrderWithdrawal.min(remainingWad)));
+                if(maxOrderWithdrawal > 0){
+                  uint256 needToOrderWithdraw;
+                  if(maxOrderWithdrawal >= remainingWad && maxOrderWithdrawal.sub(remainingWad) >= delegatorMinStake){
+                      needToOrderWithdraw = remainingWad;
+                  }else{
+                      needToOrderWithdraw = maxOrderWithdrawal;
+                  } 
+                  tempBalance += needToOrderWithdraw;
+                  auRa.orderWithdraw(pools.at(i), int256(needToOrderWithdraw));
+                  emit OrderWithdraw(pools.at(i), int256(needToOrderWithdraw));
                 }
+                
             }
         }
         uint256 withdrawAmount = wad.min(address(this).balance.sub(interest));
@@ -370,19 +358,6 @@ contract SVLX is ReentrancyGuard {
         view
         returns (bool)
     {
-        address _miningAddress =
-            IValidatorSetAuRa(validatorSetContract).miningByStakingAddress(
-                poolAddress
-            );
-        if (
-            IValidatorSetAuRa(validatorSetContract).areDelegatorsBanned(
-                _miningAddress
-            )
-        ) {
-            // The delegator cannot withdraw from the banned validator pool until the ban is expired
-            return false;
-        }
-
         if (!IStakingAuRa(stakingAuRa).areStakeAndWithdrawAllowed()) {
             return false;
         }
@@ -440,21 +415,6 @@ contract SVLX is ReentrancyGuard {
         stakingAuRa = _stakingAuRa;
 
         emit SetStakingAuRa(oldStaking, stakingAuRa);
-    }
-
-    /// @notice 设置 validatorSetContract 地址
-    /// @param _validatorSetContract validatorSetContract 地址
-    function setValidatorSetContract(address _validatorSetContract)
-        public
-        onlyAdmin
-    {
-        address oldValidatorSetContract = validatorSetContract;
-        validatorSetContract = _validatorSetContract;
-
-        emit SetValidatorSetContract(
-            oldValidatorSetContract,
-            validatorSetContract
-        );
     }
 
     /// @notice 设置预备管理员
