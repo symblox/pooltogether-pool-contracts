@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity >=0.6.0 <0.7.0;
-import '@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol';
-import '../../interface/ISponsor.sol';
-import '../../interface/ISvlx.sol';
-import '../PrizePool.sol';
+
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+
+import "../../interface/ISponsor.sol";
+import "../../interface/ISvlx.sol";
+import "../PrizePool.sol";
 
 contract SyxPrizePool is PrizePool {
-  using Address for address payable;
+  using AddressUpgradeable for address payable;
 
-  IERC20 private stakeToken;
+  IERC20Upgradeable private stakeToken;
   ISponsor public sponsor;
 
   event SyxPrizePoolInitialized(address indexed stakeToken);
@@ -48,7 +51,7 @@ contract SyxPrizePool is PrizePool {
     return stakeToken.balanceOf(address(this));
   }
 
-  function _token() internal view override returns (IERC20) {
+  function _token() internal view override returns (IERC20Upgradeable) {
     return stakeToken;
   }
 
@@ -71,7 +74,7 @@ contract SyxPrizePool is PrizePool {
     address controlledToken,
     address referrer
   ) external payable onlyControlledToken(controlledToken) canAddLiquidity(amount) nonReentrant {
-    require(amount == msg.value, 'PrizePool/invalid-amount');
+    require(amount == msg.value, "PrizePool/invalid-amount");
     address operator = _msgSender();
 
     _mint(to, amount, controlledToken, referrer);
@@ -95,7 +98,7 @@ contract SyxPrizePool is PrizePool {
     if (actualWithdrawAmount > 0) {
       (uint256 exitFee, uint256 burnedCredit) =
         _calculateEarlyExitFeeLessBurnedCredit(from, controlledToken, actualWithdrawAmount);
-      require(exitFee <= maximumExitFee, 'PrizePool/exit-fee-exceeds-user-maximum');
+      require(exitFee <= maximumExitFee, "PrizePool/exit-fee-exceeds-user-maximum");
       // burn the credit
       _burnCredit(from, controlledToken, burnedCredit);
       // burn the tickets
@@ -188,7 +191,7 @@ contract SyxPrizePool is PrizePool {
         uint256 transferAmount = FixedPoint.multiplyUintByMantissa(redeemed, shareMantissa);
         //When the amount of SVLX available is less than the amount entered, only the available amount is withdrawn
         uint256 actualTransferAmount = ISvlx(address(_token())).withdraw(transferAmount);
-        require(actualTransferAmount >= transferAmount, 'withdraw amount error');
+        require(actualTransferAmount >= transferAmount, "withdraw amount error");
         address(uint160(users[i])).transfer(transferAmount);
         emit TimelockedWithdrawalSwept(operator, users[i], balances[i], transferAmount);
       }

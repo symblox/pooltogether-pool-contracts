@@ -1,8 +1,8 @@
 pragma solidity >=0.6.0 <0.7.0;
-import '@openzeppelin/contracts-ethereum-package/contracts/utils/Address.sol';
+import '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
 
 contract WVLX {
-  using Address for address payable;
+  using AddressUpgradeable for address payable;
 
   string public name = 'Wrapped Velas';
   string public symbol = 'WVLX';

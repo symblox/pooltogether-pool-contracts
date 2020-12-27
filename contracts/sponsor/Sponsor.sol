@@ -1,18 +1,17 @@
 pragma solidity >=0.6.0 <0.7.0;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol';
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 
-import '../interface/IRewardManager.sol';
-import '../interface/IBPool.sol';
-import '../interface/ISyxPrizePool.sol';
+import "../interface/IRewardManager.sol";
+import "../interface/IBPool.sol";
+import "../interface/ISyxPrizePool.sol";
 
-contract Sponsor is Initializable, OwnableUpgradeSafe {
-  using SafeMath for uint256;
-  using SafeERC20 for IERC20;
+contract Sponsor is OwnableUpgradeable {
+  using SafeMathUpgradeable for uint256;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   address public ticket;
   ISyxPrizePool public prizePool;
@@ -42,7 +41,7 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
   }
 
   modifier validBpt(address token) {
-    require(IBPool(lpToken).isBound(token), 'Sponsor/invalid-token');
+    require(IBPool(lpToken).isBound(token), "Sponsor/invalid-token");
     _;
   }
 
@@ -61,7 +60,7 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
   }
 
   function claimRewards() external {
-    IERC20 syx = IERC20(rewardManager.syx());
+    IERC20Upgradeable syx = IERC20Upgradeable(rewardManager.syx());
     rewardManager.getReward(uint256(rewardPoolId));
 
     uint256 syxAmount = syx.balanceOf(address(this));
@@ -75,13 +74,13 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
    * @dev Don't need to check onlyOwner as the caller needs to check that
    */
   function stakeLpToken(uint256 amount) internal {
-    IERC20 syx = IERC20(rewardManager.syx());
+    IERC20Upgradeable syx = IERC20Upgradeable(rewardManager.syx());
     (uint256 currBalance, ) = rewardManager.userInfo(uint256(rewardPoolId), address(this));
-    if (IERC20(lpToken).allowance(address(this), address(rewardManager)) < amount) {
-      IERC20(lpToken).approve(address(rewardManager), amount);
+    if (IERC20Upgradeable(lpToken).allowance(address(this), address(rewardManager)) < amount) {
+      IERC20Upgradeable(lpToken).approve(address(rewardManager), amount);
     }
     uint256 newBalance = rewardManager.deposit(uint256(rewardPoolId), amount);
-    require(newBalance - currBalance == amount, 'ERR_STAKE_REWARD');
+    require(newBalance - currBalance == amount, "ERR_STAKE_REWARD");
     uint256 syxAmount = syx.balanceOf(address(this));
     syx.safeTransfer(address(prizePool), syxAmount);
 
@@ -93,13 +92,13 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
    * @dev Don't need to check onlyOwner as the caller needs to check that
    */
   function unstakeLpToken(uint256 lpTokenAmount) internal {
-    IERC20 syx = IERC20(rewardManager.syx());
+    IERC20Upgradeable syx = IERC20Upgradeable(rewardManager.syx());
     (uint256 currBalance, ) = rewardManager.userInfo(uint256(rewardPoolId), address(this));
-    require(currBalance >= lpTokenAmount, 'ERR_NOT_ENOUGH_BAL');
+    require(currBalance >= lpTokenAmount, "ERR_NOT_ENOUGH_BAL");
 
     uint256 newBalance = rewardManager.withdraw(uint256(rewardPoolId), lpTokenAmount);
 
-    require(currBalance - newBalance == lpTokenAmount, 'ERR_UNSTAKE_REWARD');
+    require(currBalance - newBalance == lpTokenAmount, "ERR_UNSTAKE_REWARD");
 
     uint256 syxAmount = syx.balanceOf(address(this));
     syx.safeTransfer(address(prizePool), syxAmount);
@@ -118,44 +117,41 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
   //   uint256 tokenAmountIn,
   //   uint256 minPoolAmountOut
   // ) external validBpt(tokenIn) returns (uint256) {
-  //   IERC20 tokenDeposit = IERC20(tokenIn);
+  //   IERC20Upgradeable tokenDeposit = IERC20Upgradeable(tokenIn);
   //   require(tokenDeposit.allowance(msg.sender, address(this)) >= tokenAmountIn, 'ERR_ALLOWANCE');
   //   // transfer the tokens here
   //   tokenDeposit.safeTransferFrom(msg.sender, address(this), tokenAmountIn);
   //   return depositAll(tokenIn, minPoolAmountOut);
   // }
 
-//   function depositAll(address tokenIn, uint256 minPoolAmountOut)
-//     public
-//     validBpt(tokenIn)
-//     returns (uint256 poolAmountOut)
-//   {
-//     IERC20 tokenDeposit = IERC20(tokenIn);
-//     // deposit to the bpool
-//     uint256 balance = tokenDeposit.balanceOf(address(this));
-//     if (tokenDeposit.allowance(address(this), lpToken) < balance) {
-//       tokenDeposit.approve(lpToken, balance);
-//     }
-//     poolAmountOut = IBPool(lpToken).joinswapExternAmountIn(tokenIn, balance, minPoolAmountOut);
-//     require(poolAmountOut > 0, 'ERR_BPOOL_DEPOSIT');
+  //   function depositAll(address tokenIn, uint256 minPoolAmountOut)
+  //     public
+  //     validBpt(tokenIn)
+  //     returns (uint256 poolAmountOut)
+  //   {
+  //     IERC20Upgradeable tokenDeposit = IERC20Upgradeable(tokenIn);
+  //     // deposit to the bpool
+  //     uint256 balance = tokenDeposit.balanceOf(address(this));
+  //     if (tokenDeposit.allowance(address(this), lpToken) < balance) {
+  //       tokenDeposit.approve(lpToken, balance);
+  //     }
+  //     poolAmountOut = IBPool(lpToken).joinswapExternAmountIn(tokenIn, balance, minPoolAmountOut);
+  //     require(poolAmountOut > 0, 'ERR_BPOOL_DEPOSIT');
 
-//     // stake to RewardManager
-//     stakeLpToken(poolAmountOut);
+  //     // stake to RewardManager
+  //     stakeLpToken(poolAmountOut);
 
-//     emit LogDeposit(msg.sender, poolAmountOut);
-//   }
+  //     emit LogDeposit(msg.sender, poolAmountOut);
+  //   }
 
-    function depositAndStake(uint256 minPoolAmountOut) public payable returns (uint256 poolAmountOut)
-    {
-        poolAmountOut = IBPool(lpToken).joinswapWTokenIn{value: address(this).balance}(
-            minPoolAmountOut
-        );
-        require(poolAmountOut > 0, "ERR_BPOOL_DEPOSIT");
-        // stake to RewardManager
-        stakeLpToken(poolAmountOut);
+  function depositAndStake(uint256 minPoolAmountOut) public payable returns (uint256 poolAmountOut) {
+    poolAmountOut = IBPool(lpToken).joinswapWTokenIn{ value: address(this).balance }(minPoolAmountOut);
+    require(poolAmountOut > 0, "ERR_BPOOL_DEPOSIT");
+    // stake to RewardManager
+    stakeLpToken(poolAmountOut);
 
-        emit LogDeposit(msg.sender, poolAmountOut);
-    }
+    emit LogDeposit(msg.sender, poolAmountOut);
+  }
 
   /**
    * @dev Unstake from the reward pool, then withdraw from the liquidity pool
@@ -172,7 +168,7 @@ contract Sponsor is Initializable, OwnableUpgradeSafe {
 
     // Remove liquidity from the bpool
     tokenAmountOut = IBPool(lpToken).exitswapPoolAmountIn(tokenOut, amount, minAmountOut);
-    IERC20(tokenOut).safeTransfer(address(prizePool), tokenAmountOut);
+    IERC20Upgradeable(tokenOut).safeTransfer(address(prizePool), tokenAmountOut);
 
     emit LogWithdrawal(tokenOut, tokenAmountOut);
   }

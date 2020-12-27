@@ -3,17 +3,23 @@
 pragma solidity >=0.6.0 <0.7.0;
 pragma experimental ABIEncoderV2;
 
+import '@openzeppelin/contracts-upgradeable/utils/SafeCastUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+
 import '@pooltogether/pooltogether-rng-contracts/contracts/RNGInterface.sol';
 import '../token/TokenListenerInterface.sol';
 import '../prize-pool/PrizePool.sol';
 import '../prize-strategy/single-random-winner/SingleRandomWinnerCoinFactory.sol';
 import '../token/ControlledTokenProxyFactory.sol';
 import '../token/TicketProxyFactory.sol';
+import '../token/TicketInterface.sol';
+import '../token/Ticket.sol';
+
 import '../external/openzeppelin/OpenZeppelinProxyFactoryInterface.sol';
 
 /* solium-disable security/no-block-members */
 contract SingleRandomWinnerCoinBuilder {
-  using SafeCast for uint256;
+  using SafeCastUpgradeable for uint256;
 
   event SingleRandomWinnerCoinCreated(
     address indexed singleRandomWinner,
@@ -31,7 +37,7 @@ contract SingleRandomWinnerCoinBuilder {
     string sponsorshipSymbol;
     uint256 ticketCreditLimitMantissa;
     uint256 ticketCreditRateMantissa;
-    address[] externalERC20Awards;
+    IERC20Upgradeable[] externalERC20Awards;
   }
 
   struct PrizeStrategyConfig {
@@ -80,8 +86,8 @@ contract SingleRandomWinnerCoinBuilder {
       config.prizePeriodStart,
       config.prizePeriodSeconds,
       prizePool,
-      prizeStrategyConfig.ticket,
-      prizeStrategyConfig.sponsorship,
+      TicketInterface(prizeStrategyConfig.ticket),
+      IERC20Upgradeable(prizeStrategyConfig.sponsorship),
       config.rngService,
       config.externalERC20Awards
     );

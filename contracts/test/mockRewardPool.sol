@@ -1,9 +1,9 @@
 pragma solidity >=0.6.0 <0.7.0;
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol';
 
 contract mockRewardPool {
-  using SafeERC20 for IERC20;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   address public syx;
 
@@ -24,7 +24,7 @@ contract mockRewardPool {
   }
 
   function getReward(uint256 _pid) external returns (uint256) {
-    IERC20(syx).safeTransfer(msg.sender, 1 ether);
+    IERC20Upgradeable(syx).safeTransfer(msg.sender, 1 ether);
   }
 
   function pendingSyx(uint256 _pid, address account) external view returns (uint256) {

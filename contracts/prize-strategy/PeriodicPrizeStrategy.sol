@@ -2,29 +2,26 @@
 
 pragma solidity >=0.6.0 <0.7.0;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/SafeCastUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/introspection/ERC165CheckerUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@pooltogether/pooltogether-rng-contracts/contracts/RNGInterface.sol";
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/SafeCastUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/introspection/ERC165CheckerUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
+import '@pooltogether/pooltogether-rng-contracts/contracts/RNGInterface.sol';
 
-import "../token/TokenListener.sol";
-import "@pooltogether/fixed-point/contracts/FixedPoint.sol";
-import "../token/TokenControllerInterface.sol";
-import "../token/ControlledToken.sol";
-import "../token/TicketInterface.sol";
-import "../prize-pool/PrizePool.sol";
-import "../Constants.sol";
-import "./PeriodicPrizeStrategyListenerInterface.sol";
-import "./PeriodicPrizeStrategyListenerLibrary.sol";
+import '../token/TokenListener.sol';
+import '@pooltogether/fixed-point/contracts/FixedPoint.sol';
+import '../token/TokenControllerInterface.sol';
+import '../token/ControlledToken.sol';
+import '../token/TicketInterface.sol';
+import '../prize-pool/PrizePool.sol';
+import '../Constants.sol';
+import './PeriodicPrizeStrategyListenerInterface.sol';
+import './PeriodicPrizeStrategyListenerLibrary.sol';
 
 /* solium-disable security/no-block-members */
-abstract contract PeriodicPrizeStrategy is Initializable,
-                                           OwnableUpgradeable,
-                                           TokenListener {
-
+abstract contract PeriodicPrizeStrategy is Initializable, OwnableUpgradeable, TokenListener {
   using SafeMathUpgradeable for uint256;
   using SafeCastUpgradeable for uint256;
   using MappedSinglyLinkedList for MappedSinglyLinkedList.Mapping;
@@ -53,36 +50,21 @@ abstract contract PeriodicPrizeStrategy is Initializable,
 
   event PrizePoolAwarded(address indexed operator, uint256 randomNumber);
 
-  event RngServiceUpdated(
-    RNGInterface indexed rngService
-  );
+  event RngServiceUpdated(RNGInterface indexed rngService);
 
-  event TokenListenerUpdated(
-    TokenListenerInterface indexed tokenListener
-  );
+  event TokenListenerUpdated(TokenListenerInterface indexed tokenListener);
 
   event RngRequestTimeoutSet(uint32 rngRequestTimeout);
 
-  event PeriodicPrizeStrategyListenerSet(
-    PeriodicPrizeStrategyListenerInterface indexed periodicPrizeStrategyListener
-  );
+  event PeriodicPrizeStrategyListenerSet(PeriodicPrizeStrategyListenerInterface indexed periodicPrizeStrategyListener);
 
-  event ExternalErc721AwardAdded(
-    IERC721Upgradeable indexed externalErc721,
-    uint256[] tokenIds
-  );
+  event ExternalErc721AwardAdded(IERC721Upgradeable indexed externalErc721, uint256[] tokenIds);
 
-  event ExternalErc20AwardAdded(
-    IERC20Upgradeable indexed externalErc20
-  );
+  event ExternalErc20AwardAdded(IERC20Upgradeable indexed externalErc20);
 
-  event ExternalErc721AwardRemoved(
-    IERC721Upgradeable indexed externalErc721Award
-  );
+  event ExternalErc721AwardRemoved(IERC721Upgradeable indexed externalErc721Award);
 
-  event ExternalErc20AwardRemoved(
-    IERC20Upgradeable indexed externalErc20Award
-  );
+  event ExternalErc20AwardRemoved(IERC20Upgradeable indexed externalErc20Award);
 
   event Initialized(
     uint256 prizePeriodStart,
@@ -126,7 +108,7 @@ abstract contract PeriodicPrizeStrategy is Initializable,
 
   // External NFT token IDs to be awarded
   //   NFT Address => TokenIds
-  mapping (IERC721Upgradeable => uint256[]) internal externalErc721TokenIds;
+  mapping(IERC721Upgradeable => uint256[]) internal externalErc721TokenIds;
 
   /// @notice A listener that receives callbacks before certain events
   PeriodicPrizeStrategyListenerInterface public periodicPrizeStrategyListener;
@@ -138,7 +120,7 @@ abstract contract PeriodicPrizeStrategy is Initializable,
   /// @param _ticket The ticket to use to draw winners
   /// @param _sponsorship The sponsorship token
   /// @param _rng The RNG service to use
-  function initialize (
+  function initialize(
     uint256 _prizePeriodStart,
     uint256 _prizePeriodSeconds,
     PrizePool _prizePool,
@@ -160,12 +142,6 @@ abstract contract PeriodicPrizeStrategy is Initializable,
     __Ownable_init();
     Constants.REGISTRY.setInterfaceImplementer(address(this), Constants.TOKENS_RECIPIENT_INTERFACE_HASH, address(this));
 
-<<<<<<< HEAD
-    for (uint256 i = 0; i < _externalErc20s.length; i++) {
-      require(prizePool.canAwardExternal(_externalErc20s[i]), 'PeriodicPrizeStrategy/cannot-award-external');
-    }
-=======
->>>>>>> v3.1.0
     externalErc20s.initialize();
     for (uint256 i = 0; i < externalErc20Awards.length; i++) {
       _addExternalErc20Award(externalErc20Awards[i]);
@@ -202,7 +178,11 @@ abstract contract PeriodicPrizeStrategy is Initializable,
   /// @notice Allows the owner to set the token listener
   /// @param _tokenListener A contract that implements the token listener interface.
   function setTokenListener(TokenListenerInterface _tokenListener) external onlyOwner requireAwardNotInProgress {
-    require(address(0) == address(_tokenListener) || address(_tokenListener).supportsInterface(TokenListenerLibrary.ERC165_INTERFACE_ID_TOKEN_LISTENER), "PeriodicPrizeStrategy/token-listener-invalid");
+    require(
+      address(0) == address(_tokenListener) ||
+        address(_tokenListener).supportsInterface(TokenListenerLibrary.ERC165_INTERFACE_ID_TOKEN_LISTENER),
+      'PeriodicPrizeStrategy/token-listener-invalid'
+    );
 
     tokenListener = _tokenListener;
 
@@ -307,8 +287,13 @@ abstract contract PeriodicPrizeStrategy is Initializable,
   /// @notice Called by the PrizePool for transfers of controlled tokens
   /// @dev Note that this is only for *transfers*, not mints or burns
   /// @param controlledToken The type of collateral that is being sent
-  function beforeTokenTransfer(address from, address to, uint256 amount, address controlledToken) external override onlyPrizePool {
-    require(from != to, "PeriodicPrizeStrategy/transfer-to-self");
+  function beforeTokenTransfer(
+    address from,
+    address to,
+    uint256 amount,
+    address controlledToken
+  ) external override onlyPrizePool {
+    require(from != to, 'PeriodicPrizeStrategy/transfer-to-self');
 
     if (controlledToken == address(ticket)) {
       _requireAwardNotInProgress();
@@ -337,19 +322,19 @@ abstract contract PeriodicPrizeStrategy is Initializable,
 
   /// @notice returns the current time.  Used for testing.
   /// @return The current time (block.timestamp)
-  function _currentTime() internal virtual view returns (uint256) {
+  function _currentTime() internal view virtual returns (uint256) {
     return block.timestamp;
   }
 
   /// @notice returns the current time.  Used for testing.
   /// @return The current time (block.timestamp)
-  function _currentBlock() internal virtual view returns (uint256) {
+  function _currentBlock() internal view virtual returns (uint256) {
     return block.number;
   }
 
   /// @notice Starts the award process by starting random number request.  The prize period must have ended.
   /// @dev The RNG-Request-Fee is expected to be held within this contract before calling this function
-  function startAward() external requireCanStartAward {
+  function startAward() public virtual requireCanStartAward {
     (address feeToken, uint256 requestFee) = rng.getRequestFee();
     if (feeToken != address(0) && requestFee > 0) {
       IERC20Upgradeable(feeToken).approve(address(rng), requestFee);
@@ -365,7 +350,7 @@ abstract contract PeriodicPrizeStrategy is Initializable,
 
   /// @notice Can be called by anyone to unlock the tickets if the RNG has timed out.
   function cancelAward() public {
-    require(isRngTimedOut(), "PeriodicPrizeStrategy/rng-not-timedout");
+    require(isRngTimedOut(), 'PeriodicPrizeStrategy/rng-not-timedout');
     uint32 requestId = rngRequest.id;
     uint32 lockBlock = rngRequest.lockBlock;
     delete rngRequest;
@@ -392,10 +377,17 @@ abstract contract PeriodicPrizeStrategy is Initializable,
 
   /// @notice Allows the owner to set a listener for prize strategy callbacks.
   /// @param _periodicPrizeStrategyListener The address of the listener contract
-  function setPeriodicPrizeStrategyListener(PeriodicPrizeStrategyListenerInterface _periodicPrizeStrategyListener) external onlyOwner requireAwardNotInProgress {
+  function setPeriodicPrizeStrategyListener(PeriodicPrizeStrategyListenerInterface _periodicPrizeStrategyListener)
+    external
+    onlyOwner
+    requireAwardNotInProgress
+  {
     require(
-      address(0) == address(_periodicPrizeStrategyListener) || address(_periodicPrizeStrategyListener).supportsInterface(PeriodicPrizeStrategyListenerLibrary.ERC165_INTERFACE_ID_PERIODIC_PRIZE_STRATEGY_LISTENER),
-      "PeriodicPrizeStrategy/prizeStrategyListener-invalid"
+      address(0) == address(_periodicPrizeStrategyListener) ||
+        address(_periodicPrizeStrategyListener).supportsInterface(
+          PeriodicPrizeStrategyListenerLibrary.ERC165_INTERFACE_ID_PERIODIC_PRIZE_STRATEGY_LISTENER
+        ),
+      'PeriodicPrizeStrategy/prizeStrategyListener-invalid'
     );
 
     periodicPrizeStrategyListener = _periodicPrizeStrategyListener;
@@ -454,7 +446,7 @@ abstract contract PeriodicPrizeStrategy is Initializable,
   /// @notice Sets the RNG service that the Prize Strategy is connected to
   /// @param rngService The address of the new RNG service interface
   function setRngService(RNGInterface rngService) external onlyOwner requireAwardNotInProgress {
-    require(!isRngRequested(), "PeriodicPrizeStrategy/rng-in-flight");
+    require(!isRngRequested(), 'PeriodicPrizeStrategy/rng-in-flight');
 
     rng = rngService;
     emit RngServiceUpdated(rngService);
@@ -480,20 +472,29 @@ abstract contract PeriodicPrizeStrategy is Initializable,
   /// @dev Only the Prize-Strategy owner/creator can assign external tokens,
   /// and they must be approved by the Prize-Pool
   /// @param _externalErc20 The address of an ERC20 token to be awarded
-  function addExternalErc20Award(IERC20Upgradeable _externalErc20) external onlyOwnerOrListener requireAwardNotInProgress {
+  function addExternalErc20Award(IERC20Upgradeable _externalErc20)
+    external
+    onlyOwnerOrListener
+    requireAwardNotInProgress
+  {
     _addExternalErc20Award(_externalErc20);
   }
 
   function _addExternalErc20Award(IERC20Upgradeable _externalErc20) internal {
-    require(address(_externalErc20).isContract(), "PeriodicPrizeStrategy/erc20-null");
-    require(prizePool.canAwardExternal(address(_externalErc20)), "PeriodicPrizeStrategy/cannot-award-external");
-    (bool succeeded, bytes memory returnValue) = address(_externalErc20).staticcall(abi.encodeWithSignature("totalSupply()"));
-    require(succeeded, "PeriodicPrizeStrategy/erc20-invalid");
+    require(address(_externalErc20).isContract(), 'PeriodicPrizeStrategy/erc20-null');
+    require(prizePool.canAwardExternal(address(_externalErc20)), 'PeriodicPrizeStrategy/cannot-award-external');
+    (bool succeeded, bytes memory returnValue) =
+      address(_externalErc20).staticcall(abi.encodeWithSignature('totalSupply()'));
+    require(succeeded, 'PeriodicPrizeStrategy/erc20-invalid');
     externalErc20s.addAddress(address(_externalErc20));
     emit ExternalErc20AwardAdded(_externalErc20);
   }
 
-  function addExternalErc20Awards(IERC20Upgradeable[] calldata _externalErc20s) external onlyOwnerOrListener requireAwardNotInProgress {
+  function addExternalErc20Awards(IERC20Upgradeable[] calldata _externalErc20s)
+    external
+    onlyOwnerOrListener
+    requireAwardNotInProgress
+  {
     for (uint256 i = 0; i < _externalErc20s.length; i++) {
       _addExternalErc20Award(_externalErc20s[i]);
     }
@@ -504,7 +505,11 @@ abstract contract PeriodicPrizeStrategy is Initializable,
   /// @param _externalErc20 The address of an ERC20 token to be removed
   /// @param _prevExternalErc20 The address of the previous ERC20 token in the `externalErc20s` list.
   /// If the ERC20 is the first address, then the previous address is the SENTINEL address: 0x0000000000000000000000000000000000000001
-  function removeExternalErc20Award(IERC20Upgradeable _externalErc20, IERC20Upgradeable _prevExternalErc20) external onlyOwner requireAwardNotInProgress {
+  function removeExternalErc20Award(IERC20Upgradeable _externalErc20, IERC20Upgradeable _prevExternalErc20)
+    external
+    onlyOwner
+    requireAwardNotInProgress
+  {
     externalErc20s.removeAddress(address(_prevExternalErc20), address(_externalErc20));
     emit ExternalErc20AwardRemoved(_externalErc20);
   }
@@ -527,10 +532,17 @@ abstract contract PeriodicPrizeStrategy is Initializable,
   /// NOTE: The NFT must already be owned by the Prize-Pool
   /// @param _externalErc721 The address of an ERC721 token to be awarded
   /// @param _tokenIds An array of token IDs of the ERC721 to be awarded
-  function addExternalErc721Award(IERC721Upgradeable _externalErc721, uint256[] calldata _tokenIds) external onlyOwnerOrListener requireAwardNotInProgress {
-    require(prizePool.canAwardExternal(address(_externalErc721)), "PeriodicPrizeStrategy/cannot-award-external");
-    require(address(_externalErc721).supportsInterface(Constants.ERC165_INTERFACE_ID_ERC721), "PeriodicPrizeStrategy/erc721-invalid");
-    
+  function addExternalErc721Award(IERC721Upgradeable _externalErc721, uint256[] calldata _tokenIds)
+    external
+    onlyOwnerOrListener
+    requireAwardNotInProgress
+  {
+    require(prizePool.canAwardExternal(address(_externalErc721)), 'PeriodicPrizeStrategy/cannot-award-external');
+    require(
+      address(_externalErc721).supportsInterface(Constants.ERC165_INTERFACE_ID_ERC721),
+      'PeriodicPrizeStrategy/erc721-invalid'
+    );
+
     if (!externalErc721s.contains(address(_externalErc721))) {
       externalErc721s.addAddress(address(_externalErc721));
     }
@@ -543,10 +555,13 @@ abstract contract PeriodicPrizeStrategy is Initializable,
   }
 
   function _addExternalErc721Award(IERC721Upgradeable _externalErc721, uint256 _tokenId) internal {
-    require(IERC721Upgradeable(_externalErc721).ownerOf(_tokenId) == address(prizePool), "PeriodicPrizeStrategy/unavailable-token");
+    require(
+      IERC721Upgradeable(_externalErc721).ownerOf(_tokenId) == address(prizePool),
+      'PeriodicPrizeStrategy/unavailable-token'
+    );
     for (uint256 i = 0; i < externalErc721TokenIds[_externalErc721].length; i++) {
       if (externalErc721TokenIds[_externalErc721][i] == _tokenId) {
-        revert("PeriodicPrizeStrategy/erc721-duplicate");
+        revert('PeriodicPrizeStrategy/erc721-duplicate');
       }
     }
     externalErc721TokenIds[_externalErc721].push(_tokenId);
@@ -557,10 +572,7 @@ abstract contract PeriodicPrizeStrategy is Initializable,
   /// @param _externalErc721 The address of an ERC721 token to be removed
   /// @param _prevExternalErc721 The address of the previous ERC721 token in the list.
   /// If no previous, then pass the SENTINEL address: 0x0000000000000000000000000000000000000001
-  function removeExternalErc721Award(
-    IERC721Upgradeable _externalErc721,
-    IERC721Upgradeable _prevExternalErc721
-  )
+  function removeExternalErc721Award(IERC721Upgradeable _externalErc721, IERC721Upgradeable _prevExternalErc721)
     external
     onlyOwner
     requireAwardNotInProgress
@@ -569,11 +581,7 @@ abstract contract PeriodicPrizeStrategy is Initializable,
     _removeExternalErc721AwardTokens(_externalErc721);
   }
 
-  function _removeExternalErc721AwardTokens(
-    IERC721Upgradeable _externalErc721
-  )
-    internal
-  {
+  function _removeExternalErc721AwardTokens(IERC721Upgradeable _externalErc721) internal {
     delete externalErc721TokenIds[_externalErc721];
     emit ExternalErc721AwardRemoved(_externalErc721);
   }
@@ -587,11 +595,7 @@ abstract contract PeriodicPrizeStrategy is Initializable,
     address to,
     address externalToken,
     uint256 amount
-  )
-    external
-    onlyOwner
-    requireAwardNotInProgress
-  {
+  ) external onlyOwner requireAwardNotInProgress {
     prizePool.transferExternalERC20(to, externalToken, amount);
   }
 
@@ -609,7 +613,10 @@ abstract contract PeriodicPrizeStrategy is Initializable,
   }
 
   modifier onlyOwnerOrListener() {
-    require(_msgSender() == owner() || _msgSender() == address(periodicPrizeStrategyListener), "PeriodicPrizeStrategy/only-owner-or-listener");
+    require(
+      _msgSender() == owner() || _msgSender() == address(periodicPrizeStrategyListener),
+      'PeriodicPrizeStrategy/only-owner-or-listener'
+    );
     _;
   }
 
@@ -619,14 +626,14 @@ abstract contract PeriodicPrizeStrategy is Initializable,
   }
 
   modifier requireCanStartAward() {
-    require(_isPrizePeriodOver(), "PeriodicPrizeStrategy/prize-period-not-over");
-    require(!isRngRequested(), "PeriodicPrizeStrategy/rng-already-requested");
+    require(_isPrizePeriodOver(), 'PeriodicPrizeStrategy/prize-period-not-over');
+    require(!isRngRequested(), 'PeriodicPrizeStrategy/rng-already-requested');
     _;
   }
 
   modifier requireCanCompleteAward() {
-    require(isRngRequested(), "PeriodicPrizeStrategy/rng-not-requested");
-    require(isRngCompleted(), "PeriodicPrizeStrategy/rng-not-complete");
+    require(isRngRequested(), 'PeriodicPrizeStrategy/rng-not-requested');
+    require(isRngCompleted(), 'PeriodicPrizeStrategy/rng-not-complete');
     _;
   }
 

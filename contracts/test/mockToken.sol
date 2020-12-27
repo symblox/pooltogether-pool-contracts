@@ -1,7 +1,7 @@
 pragma solidity >=0.6.0 <0.7.0;
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
 
-contract mockToken is ERC20UpgradeSafe {
+contract mockToken is ERC20Upgradeable {
   function initialize(
     string memory _name,
     string memory _symbol,

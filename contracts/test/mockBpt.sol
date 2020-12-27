@@ -1,10 +1,11 @@
 pragma solidity >=0.6.0 <0.7.0;
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/SafeERC20.sol';
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol';
 
-contract mockBpt is ERC20UpgradeSafe {
-  using SafeERC20 for IERC20;
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import '@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol';
+
+contract mockBpt is ERC20Upgradeable {
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   function isBound(address t) external view returns (bool) {
     return true;
@@ -15,7 +16,7 @@ contract mockBpt is ERC20UpgradeSafe {
     uint256 tokenAmountIn,
     uint256 minPoolAmountOut
   ) external returns (uint256 poolAmountOut) {
-    IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), tokenAmountIn);
+    IERC20Upgradeable(tokenIn).safeTransferFrom(msg.sender, address(this), tokenAmountIn);
     return tokenAmountIn;
   }
 
@@ -24,7 +25,7 @@ contract mockBpt is ERC20UpgradeSafe {
     uint256 poolAmountIn,
     uint256 minAmountOut
   ) external returns (uint256 tokenAmountOut) {
-    IERC20(tokenOut).safeTransfer(msg.sender, poolAmountIn);
+    IERC20Upgradeable(tokenOut).safeTransfer(msg.sender, poolAmountIn);
     return poolAmountIn;
   }
 }

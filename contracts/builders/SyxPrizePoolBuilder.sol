@@ -3,19 +3,24 @@
 pragma solidity >=0.6.0 <0.7.0;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import '@openzeppelin/contracts-upgradeable/utils/SafeCastUpgradeable.sol';
+
 import './PrizePoolBuilder.sol';
 import '../registry/RegistryInterface.sol';
 import './SingleRandomWinnerCoinBuilder.sol';
 import '../sponsor/SponsorProxyFactory.sol';
 import '../prize-pool/syx/SyxPrizePoolProxyFactory.sol';
+import '../token/ControlledTokenInterface.sol';
 
 /* solium-disable security/no-block-members */
 contract SyxPrizePoolBuilder is PrizePoolBuilder {
-  using SafeMath for uint256;
-  using SafeCast for uint256;
+  using SafeMathUpgradeable for uint256;
+  using SafeCastUpgradeable for uint256;
 
   struct SyxPrizePoolConfig {
-    IERC20 token;
+    IERC20Upgradeable token;
     uint256 maxExitFeeMantissa;
     uint256 maxTimelockDuration;
   }
@@ -56,11 +61,12 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
     uint256 ticketCreditLimitMantissa
   ) internal {
     address ticket = address(singleRandomWinner.ticket());
+    address sponsorship = address(singleRandomWinner.sponsorship());
 
     prizePool.setPrizeStrategy(singleRandomWinner);
 
-    prizePool.addControlledToken(ticket);
-    prizePool.addControlledToken(address(singleRandomWinner.sponsorship()));
+    prizePool.addControlledToken(ControlledTokenInterface(ticket));
+    prizePool.addControlledToken(ControlledTokenInterface(sponsorship));
 
     prizePool.setCreditPlanOf(ticket, ticketCreditRateMantissa.toUint128(), ticketCreditLimitMantissa.toUint128());
   }
@@ -75,7 +81,7 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
     SingleRandomWinnerCoin prizeStrategy =
       singleRandomWinnerCoinBuilder.createSingleRandomWinner(prizePool, prizeStrategyConfig, decimals, msg.sender);
 
-    address[] memory tokens;
+    ControlledTokenInterface[] memory tokens;
 
     prizePool.initialize(
       reserveRegistry,
@@ -101,7 +107,7 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
 
   function createSyxPrizePool(SyxPrizePoolConfig calldata config) external returns (SyxPrizePool) {
     SyxPrizePool prizePool = syxPrizePoolProxyFactory.create();
-    address[] memory tokens;
+    ControlledTokenInterface[] memory tokens;
 
     prizePool.initialize(reserveRegistry, tokens, config.maxExitFeeMantissa, config.maxTimelockDuration, config.token);
 
