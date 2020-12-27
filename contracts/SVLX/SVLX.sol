@@ -1,11 +1,19 @@
 pragma solidity >=0.6.0 <0.7.0;
 
-import '@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol';
+// import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+// import '@openzeppelin/contracts-upgradeable/math/MathUpgradeable.sol';
+// import '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol';
+// import '@openzeppelin/contracts-upgradeable/utils/EnumerableSetUpgradeable.sol';
+// import '@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol';
+// import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+
+import '../libs/SafeERC20.sol';
+import '../libs/Math.sol';
+import '../libs/ReentrancyGuard.sol';
+import '../libs/EnumerableSet.sol';
+
 import './interfaces/IStakingAuRa.sol';
 import './interfaces/IValidatorSetAuRa.sol';
-import './libraries/SafeERC20.sol';
-import './libraries/Math.sol';
-import './utils/ReentrancyGuard.sol';
 
 // V2YtVG9Q611sxG388a7GW4ChQwxbbFpWYx stake地址
 // 0x1100000000000000000000000000000000000001
@@ -20,12 +28,12 @@ import './utils/ReentrancyGuard.sol';
 // 部署的合约地址 0x16bdBc6ef829E1CB0A3c01D58ef91Fcf4a03c0Bd
 
 contract SVLX is ReentrancyGuard {
-  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
-
-  EnumerableSetUpgradeable.AddressSet private pools;
-  using Math for uint256;
   using SafeMath for uint256;
-  using SafeERC20 for IERC20;
+  using Math for uint256;
+
+  using EnumerableSet for EnumerableSet.AddressSet;
+
+  EnumerableSet.AddressSet private pools;
 
   string public name = 'Staking Velas';
   string public symbol = 'SVLX';
@@ -104,16 +112,16 @@ contract SVLX is ReentrancyGuard {
   mapping(address => uint256) public balanceOf;
   mapping(address => mapping(address => uint256)) public allowance;
 
+  modifier onlyAdmin {
+    require(msg.sender == admin, 'Admin required');
+    _;
+  }
+
   constructor(address _stakingAuRa) public {
     admin = msg.sender;
     nextIndex = 0;
     stakingAuRa = _stakingAuRa;
     validatorSetContract = IStakingAuRa(stakingAuRa).validatorSetContract();
-  }
-
-  modifier onlyAdmin {
-    require(msg.sender == admin, 'Admin required');
-    _;
   }
 
   /// @notice 存款
@@ -145,7 +153,7 @@ contract SVLX is ReentrancyGuard {
     uint256 interest = calcInterest();
     uint256 currentBalance = calcBalance();
 
-    EnumerableSetUpgradeable.AddressSet storage _pools = pools;
+    EnumerableSet.AddressSet storage _pools = pools;
     IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
     IValidatorSetAuRa validatorSet = IValidatorSetAuRa(validatorSetContract);
     if (currentBalance < wad) {
@@ -215,7 +223,7 @@ contract SVLX is ReentrancyGuard {
 
   /// @notice 查询可直接从合约中取出的数量
   // function withdrawableAmount() public view returns (uint256 res) {
-  // EnumerableSetUpgradeable.AddressSet storage _pools = pools;
+  // EnumerableSet.AddressSet storage _pools = pools;
   // IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
   // res = calcBalance();
   // for (uint256 i = 0; i < pools.length(); ++i) {

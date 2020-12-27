@@ -1,27 +1,27 @@
-const { deploy1820 } = require('deploy-eip-1820')
+const { deploy1820 } = require("deploy-eip-1820")
 
-const debug = require('debug')('ptv3:deploy.js')
+const debug = require("debug")("ptv3:deploy.js")
 
 const chainName = chainId => {
   switch (chainId) {
     case 106:
-      return 'VELAS'
+      return "VELAS"
     case 111:
-      return 'VELAS (Test)'
+      return "VELAS (Test)"
     case 1:
-      return 'Mainnet'
+      return "Mainnet"
     case 3:
-      return 'Ropsten'
+      return "Ropsten"
     case 4:
-      return 'Rinkeby'
+      return "Rinkeby"
     case 5:
-      return 'Goerli'
+      return "Goerli"
     case 42:
-      return 'Kovan'
+      return "Kovan"
     case 31337:
-      return 'BuidlerEVM'
+      return "BuidlerEVM"
     default:
-      return 'Unknown'
+      return "Unknown"
   }
 }
 
@@ -39,119 +39,93 @@ module.exports = async buidler => {
   // const signer = await ethers.provider.getSigner(deployer)
   const [signer] = await ethers.getSigners()
 
-  debug('\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-  debug('PoolTogether Pool Contracts - Deploy Script')
-  debug('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
+  debug("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+  debug("PoolTogether Pool Contracts - Deploy Script")
+  debug("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
 
-  const locus = isLocal ? 'local' : 'remote'
+  const locus = isLocal ? "local" : "remote"
   debug(`  Deploying to Network: ${chainName(chainId)} (${locus})`)
 
   if (!adminAccount) {
-    debug('  Using deployer as adminAccount;')
+    debug("  Using deployer as adminAccount;")
     adminAccount = signer._address
   }
-  debug('\n  adminAccount:  ', adminAccount)
+  debug("\n  adminAccount:  ", adminAccount)
 
-  console.log('user: ', signer._address)
+  console.log("user: ", signer._address)
   await deploy1820(signer)
 
   if (chainId === 111 || chainId === 106) {
     // Display Contract Addresses
-    debug('\n  VELAS network deployments;\n')
-    debug('  - RNGService:       ', rng)
+    debug("\n  VELAS network deployments;\n")
+    debug("  - RNGService:       ", rng)
   }
 
   if (isLocal) {
-    debug('\n  Deploying RNGService...')
-    const rngServiceMockResult = await deploy('RNGServiceMock', {
+    debug("\n  Deploying RNGService...")
+    const rngServiceMockResult = await deploy("RNGServiceMock", {
       from: deployer,
       skipIfAlreadyDeployed: true
     })
     rng = rngServiceMockResult.address
 
-    debug('\n  Deploying WVLX...')
-    const wvlxResult = await deploy('WVLX', {
+    debug("\n  Deploying SVLX ...")
+    const svlxResult = await deploy("SVLX", {
+      contract: "WVLX",
       args: [],
-      contract: 'WVLX',
       from: deployer,
       skipIfAlreadyDeployed: true
     })
 
-    debug('\n  Deploying syx...')
-    const syxResult = await deploy('mockToken', {
+    debug("\n  Deploying syx...")
+    const syxResult = await deploy("mockToken", {
       args: [],
-      contract: 'mockToken',
+      contract: "mockToken",
       from: deployer,
       skipIfAlreadyDeployed: true
     })
-    const syxContract = await buidler.ethers.getContractAt('mockToken', syxResult.address, signer)
-    await syxContract.initialize('SYX', 'SYX', 18, '100000000000000000000000')
+    const syxContract = await buidler.ethers.getContractAt("mockToken", syxResult.address, signer)
+    await syxContract.initialize("SYX", "SYX", 18, "100000000000000000000000")
 
-    // debug('\n  Deploying Dai...')
-    // const daiResult = await deploy('Dai', {
-    //   args: ['DAI Test Token', 'DAI'],
-    //   contract: 'ERC20Mintable',
-    //   from: deployer,
-    //   skipIfAlreadyDeployed: true
-    // })
-
-    debug('\n  Deploying bpt...')
-    const bptResult = await deploy('mockBpt', {
+    debug("\n  Deploying bpt...")
+    const bptResult = await deploy("mockBpt", {
       args: [],
-      contract: 'mockBpt',
+      contract: "mockBpt",
       from: deployer,
       skipIfAlreadyDeployed: true
     })
 
-    debug('\n  Deploying reward pool...')
-    const rewardPoolResult = await deploy('mockRewardPool', {
+    debug("\n  Deploying reward pool...")
+    const rewardPoolResult = await deploy("mockRewardPool", {
       args: [],
-      contract: 'mockRewardPool',
+      contract: "mockRewardPool",
       from: deployer,
       skipIfAlreadyDeployed: true
     })
-    const rewardPoolContract = await buidler.ethers.getContractAt('mockRewardPool', rewardPoolResult.address, signer)
+    const rewardPoolContract = await buidler.ethers.getContractAt("mockRewardPool", rewardPoolResult.address, signer)
     await rewardPoolContract.setSyx(syxResult.address)
-    await syxContract.mint(rewardPoolResult.address, '100000000000000000000000')
-
-    // debug('\n  Deploying cDai...')
-    // // should be about 20% APR
-    // let supplyRate = '8888888888888'
-    // await deploy('cDai', {
-    //   args: [daiResult.address, supplyRate],
-    //   contract: 'CTokenMock',
-    //   from: deployer,
-    //   skipIfAlreadyDeployed: true
-    // })
-
-    // await deploy('yDai', {
-    //   args: [daiResult.address],
-    //   contract: 'yVaultMock',
-    //   from: deployer,
-    //   skipIfAlreadyDeployed: true
-    // })
+    await syxContract.mint(rewardPoolResult.address, "100000000000000000000000")
 
     // Display Contract Addresses
-    debug('\n  Local Contract Deployments;\n')
-    debug('  - RNGService:       ', rng)
-    // debug('  - Dai:              ', daiResult.address)
-    debug('  - WVLX:             ', wvlxResult.address)
-    debug('  - SYX:              ', syxResult.address)
-    debug('  - bpt:              ', bptResult.address)
-    debug('  - rewardPool:       ', rewardPoolResult.address)
+    debug("\n  Local Contract Deployments;\n")
+    debug("  - RNGService:       ", rng)
+    debug("  - SVLX:             ", svlxResult.address)
+    debug("  - SYX:              ", syxResult.address)
+    debug("  - bpt:              ", bptResult.address)
+    debug("  - rewardPool:       ", rewardPoolResult.address)
   }
 
   let comptrollerAddress = comptroller
   // if not set by named config
   if (!comptrollerAddress) {
-    const contract = isTestEnvironment ? 'ComptrollerHarness' : 'Comptroller'
-    const comptrollerResult = await deploy('Comptroller', {
+    const contract = isTestEnvironment ? "ComptrollerHarness" : "Comptroller"
+    const comptrollerResult = await deploy("Comptroller", {
       contract,
       from: deployer,
       skipIfAlreadyDeployed: true
     })
     comptrollerAddress = comptrollerResult.address
-    const comptrollerContract = await buidler.ethers.getContractAt('Comptroller', comptrollerResult.address, signer)
+    const comptrollerContract = await buidler.ethers.getContractAt("Comptroller", comptrollerResult.address, signer)
     if (adminAccount !== deployer) {
       await comptrollerContract.transferOwnership(adminAccount)
     }
@@ -162,22 +136,22 @@ module.exports = async buidler => {
 
   if (!reserveRegistry) {
     // if not set by named config
-    const reserveResult = await deploy('Reserve', {
+    const reserveResult = await deploy("Reserve", {
       from: deployer,
       skipIfAlreadyDeployed: true
     })
-    const reserveContract = await buidler.ethers.getContractAt('Reserve', reserveResult.address, signer)
+    const reserveContract = await buidler.ethers.getContractAt("Reserve", reserveResult.address, signer)
     if (adminAccount !== deployer) {
       await reserveContract.transferOwnership(adminAccount)
     }
 
-    const reserveRegistryResult = await deploy('ReserveRegistry', {
-      contract: 'Registry',
+    const reserveRegistryResult = await deploy("ReserveRegistry", {
+      contract: "Registry",
       from: deployer,
       skipIfAlreadyDeployed: true
     })
     const reserveRegistryContract = await buidler.ethers.getContractAt(
-      'Registry',
+      "Registry",
       reserveRegistryResult.address,
       signer
     )
@@ -194,63 +168,57 @@ module.exports = async buidler => {
     debug(`  Using existing reserve registry ${reserveRegistry}`)
   }
 
-  debug('\n  Deploying ControlledTokenProxyFactory...')
-  const controlledTokenProxyFactoryResult = await deploy('ControlledTokenProxyFactory', {
+  debug("\n  Deploying ControlledTokenProxyFactory...")
+  const controlledTokenProxyFactoryResult = await deploy("ControlledTokenProxyFactory", {
     from: deployer,
     skipIfAlreadyDeployed: true
   })
 
-  debug('\n  Deploying TicketProxyFactory...')
-  const ticketProxyFactoryResult = await deploy('TicketProxyFactory', {
+  debug("\n  Deploying TicketProxyFactory...")
+  const ticketProxyFactoryResult = await deploy("TicketProxyFactory", {
     from: deployer,
     skipIfAlreadyDeployed: true
   })
 
-  // debug('\n  Deploying StakePrizePoolProxyFactory...')
-  // const stakePrizePoolProxyFactoryResult = await deploy('StakePrizePoolProxyFactory', {
-  //   from: deployer,
-  //   skipIfAlreadyDeployed: true
-  // })
-
-  debug('\n  Deploying SyxPrizePoolProxyFactory...')
-  const syxPrizePoolProxyFactoryResult = await deploy('SyxPrizePoolProxyFactory', {
+  debug("\n  Deploying SyxPrizePoolProxyFactory...")
+  const syxPrizePoolProxyFactoryResult = await deploy("SyxPrizePoolProxyFactory", {
     from: deployer,
     skipIfAlreadyDeployed: true
   })
 
-  debug('\n  Deploying SponsorProxyFactory...')
-  const sponsorProxyFactoryResult = await deploy('SponsorProxyFactory', {
+  debug("\n  Deploying SponsorProxyFactory...")
+  const sponsorProxyFactoryResult = await deploy("SponsorProxyFactory", {
     from: deployer,
     skipIfAlreadyDeployed: true
   })
 
-  debug('\n  Deploying ControlledTokenBuilder...')
-  const controlledTokenBuilderResult = await deploy('ControlledTokenBuilder', {
+  debug("\n  Deploying ControlledTokenBuilder...")
+  const controlledTokenBuilderResult = await deploy("ControlledTokenBuilder", {
     args: [controlledTokenProxyFactoryResult.address, ticketProxyFactoryResult.address],
     from: deployer,
     skipIfAlreadyDeployed: true
   })
 
-  debug('\n  Deploying SingleRandomWinnerCoinFactory...')
-  let singleRandomWinnerCoinFactoryResult
+  debug("\n  Deploying SyxSingleWinnerFactory...")
+  let syxSingleWinnerFactoryResult
   if (isTestEnvironment && !harnessDisabled) {
-    debug('\n  Deploying SingleRandomWinnerCoinHarnessProxyFactory...')
-    singleRandomWinnerCoinFactoryResult = await deploy('SingleRandomWinnerCoinFactory', {
-      contract: 'SingleRandomWinnerCoinHarnessProxyFactory',
+    debug("\n  Deploying SyxSingleWinnerHarnessProxyFactory...")
+    syxSingleWinnerFactoryResult = await deploy("SyxSingleWinnerFactory", {
+      contract: "SyxSingleWinnerHarnessProxyFactory",
       from: deployer,
       skipIfAlreadyDeployed: true
     })
   } else {
-    singleRandomWinnerCoinFactoryResult = await deploy('SingleRandomWinnerCoinFactory', {
+    syxSingleWinnerFactoryResult = await deploy("SyxSingleWinnerFactory", {
       from: deployer,
       skipIfAlreadyDeployed: true
     })
   }
 
-  debug('\n  Deploying SingleRandomWinnerCoinBuilder...')
-  const singleRandomWinnerBuilderResult = await deploy('SingleRandomWinnerCoinBuilder', {
+  debug("\n  Deploying SyxSingleWinnerBuilder...")
+  const syxSingleWinnerBuilderResult = await deploy("SyxSingleWinnerBuilder", {
     args: [
-      singleRandomWinnerCoinFactoryResult.address,
+      syxSingleWinnerFactoryResult.address,
       controlledTokenProxyFactoryResult.address,
       ticketProxyFactoryResult.address
     ],
@@ -258,23 +226,12 @@ module.exports = async buidler => {
     skipIfAlreadyDeployed: true
   })
 
-  // debug('\n  Deploying StakePrizePoolBuilder...')
-  // const stakePrizePoolBuilderResult = await deploy('StakePrizePoolBuilder', {
-  //   args: [
-  //     reserveRegistry,
-  //     stakePrizePoolProxyFactoryResult.address,
-  //     singleRandomWinnerBuilderResult.address
-  //   ],
-  //   from: deployer,
-  //   skipIfAlreadyDeployed: true
-  // })
-
-  debug('\n  Deploying SyxPrizePoolBuilder...')
-  const syxPrizePoolBuilderResult = await deploy('SyxPrizePoolBuilder', {
+  debug("\n  Deploying SyxPrizePoolBuilder...")
+  const syxPrizePoolBuilderResult = await deploy("SyxPrizePoolBuilder", {
     args: [
       reserveRegistry,
       syxPrizePoolProxyFactoryResult.address,
-      singleRandomWinnerBuilderResult.address,
+      syxSingleWinnerBuilderResult.address,
       sponsorProxyFactoryResult.address
     ],
     from: deployer,
@@ -282,24 +239,19 @@ module.exports = async buidler => {
   })
 
   // Display Contract Addresses
-  debug('\n  Contract Deployments Complete!\n')
-  debug('  - TicketProxyFactory:             ', ticketProxyFactoryResult.address)
-  debug('  - Reserve:                        ', reserveRegistry)
-  // debug('  - Comptroller:                    ', comptrollerAddress)
-  // debug('  - CompoundPrizePoolProxyFactory:  ', compoundPrizePoolProxyFactoryResult.address)
-  debug('  - ControlledTokenProxyFactory:    ', controlledTokenProxyFactoryResult.address)
-  debug('  - SingleRandomWinnerCoinFactory: ', singleRandomWinnerCoinFactoryResult.address)
-  debug('  - SponsorProxyFactory: ', sponsorProxyFactoryResult.address)
-  debug('  - ControlledTokenBuilder:         ', controlledTokenBuilderResult.address)
-  debug('  - SingleRandomWinnerBuilder:      ', singleRandomWinnerBuilderResult.address)
-  // debug('  - CompoundPrizePoolBuilder:       ', compoundPrizePoolBuilderResult.address)
-  // debug('  - yVaultPrizePoolBuilder:         ', yVaultPrizePoolBuilderResult.address)
-  // debug('  - StakePrizePoolBuilder:          ', stakePrizePoolBuilderResult.address)
-  debug('  - SyxPrizePoolBuilder:          ', syxPrizePoolBuilderResult.address)
+  debug("\n  Contract Deployments Complete!\n")
+  debug("  - TicketProxyFactory:             ", ticketProxyFactoryResult.address)
+  debug("  - Reserve:                        ", reserveRegistry)
+  debug("  - ControlledTokenProxyFactory:    ", controlledTokenProxyFactoryResult.address)
+  debug("  - SyxSingleWinnerFactory: ", syxSingleWinnerFactoryResult.address)
+  debug("  - SponsorProxyFactory: ", sponsorProxyFactoryResult.address)
+  debug("  - ControlledTokenBuilder:         ", controlledTokenBuilderResult.address)
+  debug("  - SyxSingleWinnerBuilder:      ", syxSingleWinnerBuilderResult.address)
+  debug("  - SyxPrizePoolBuilder:          ", syxPrizePoolBuilderResult.address)
 
   // if (permitAndDepositDaiResult) {
   //   debug('  - PermitAndDepositDai:            ', permitAndDepositDaiResult.address)
   // }
 
-  debug('\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n')
+  debug("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
 }

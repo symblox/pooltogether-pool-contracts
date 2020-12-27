@@ -5,14 +5,14 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
-import '@openzeppelin/contracts-upgradeable/utils/SafeCastUpgradeable.sol';
+import "@openzeppelin/contracts-upgradeable/utils/SafeCastUpgradeable.sol";
 
-import './PrizePoolBuilder.sol';
-import '../registry/RegistryInterface.sol';
-import './SingleRandomWinnerCoinBuilder.sol';
-import '../sponsor/SponsorProxyFactory.sol';
-import '../prize-pool/syx/SyxPrizePoolProxyFactory.sol';
-import '../token/ControlledTokenInterface.sol';
+import "./PrizePoolBuilder.sol";
+import "../registry/RegistryInterface.sol";
+import "./SyxSingleWinnerBuilder.sol";
+import "../sponsor/SponsorProxyFactory.sol";
+import "../prize-pool/syx/SyxPrizePoolProxyFactory.sol";
+import "../token/ControlledTokenInterface.sol";
 
 /* solium-disable security/no-block-members */
 contract SyxPrizePoolBuilder is PrizePoolBuilder {
@@ -27,7 +27,7 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
 
   RegistryInterface public reserveRegistry;
   SyxPrizePoolProxyFactory public syxPrizePoolProxyFactory;
-  SingleRandomWinnerCoinBuilder public singleRandomWinnerCoinBuilder;
+  SyxSingleWinnerBuilder public syxSingleWinnerBuilder;
   SponsorProxyFactory public sponsorProxyFactory;
 
   event SponsorCreated(address sender, address sponsor);
@@ -35,28 +35,28 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
   constructor(
     RegistryInterface _reserveRegistry,
     SyxPrizePoolProxyFactory _syxPrizePoolProxyFactory,
-    SingleRandomWinnerCoinBuilder _singleRandomWinnerCoinBuilder,
+    SyxSingleWinnerBuilder _syxSingleWinnerBuilder,
     SponsorProxyFactory _sponsorProxyFactory
   ) public {
-    require(address(_reserveRegistry) != address(0), 'SyxPrizePoolBuilder/reserveRegistry-not-zero');
+    require(address(_reserveRegistry) != address(0), "SyxPrizePoolBuilder/reserveRegistry-not-zero");
     require(
-      address(_singleRandomWinnerCoinBuilder) != address(0),
-      'SyxPrizePoolBuilder/single-random-winner-builder-not-zero'
+      address(_syxSingleWinnerBuilder) != address(0),
+      "SyxPrizePoolBuilder/single-random-winner-builder-not-zero"
     );
     require(
       address(_syxPrizePoolProxyFactory) != address(0),
-      'SyxPrizePoolBuilder/syx-prize-pool-proxy-factory-not-zero'
+      "SyxPrizePoolBuilder/syx-prize-pool-proxy-factory-not-zero"
     );
-    require(address(_sponsorProxyFactory) != address(0), 'SyxPrizePoolBuilder/sponsor-factory-not-zero');
+    require(address(_sponsorProxyFactory) != address(0), "SyxPrizePoolBuilder/sponsor-factory-not-zero");
     reserveRegistry = _reserveRegistry;
-    singleRandomWinnerCoinBuilder = _singleRandomWinnerCoinBuilder;
+    syxSingleWinnerBuilder = _syxSingleWinnerBuilder;
     sponsorProxyFactory = _sponsorProxyFactory;
     syxPrizePoolProxyFactory = _syxPrizePoolProxyFactory;
   }
 
   function _setupSingleRandomWinner(
     PrizePool prizePool,
-    SingleRandomWinnerCoin singleRandomWinner,
+    SyxSingleWinner singleRandomWinner,
     uint256 ticketCreditRateMantissa,
     uint256 ticketCreditLimitMantissa
   ) internal {
@@ -71,15 +71,15 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
     prizePool.setCreditPlanOf(ticket, ticketCreditRateMantissa.toUint128(), ticketCreditLimitMantissa.toUint128());
   }
 
-  function createSingleRandomWinner(
+  function createSyxSingleWinner(
     SyxPrizePoolConfig calldata prizePoolConfig,
-    SingleRandomWinnerCoinBuilder.SingleRandomWinnerConfig calldata prizeStrategyConfig,
+    SyxSingleWinnerBuilder.SingleRandomWinnerConfig calldata prizeStrategyConfig,
     uint8 decimals
   ) external returns (SyxPrizePool) {
     SyxPrizePool prizePool = syxPrizePoolProxyFactory.create();
 
-    SingleRandomWinnerCoin prizeStrategy =
-      singleRandomWinnerCoinBuilder.createSingleRandomWinner(prizePool, prizeStrategyConfig, decimals, msg.sender);
+    SyxSingleWinner prizeStrategy =
+      syxSingleWinnerBuilder.createSyxSingleWinner(prizePool, prizeStrategyConfig, decimals, msg.sender);
 
     ControlledTokenInterface[] memory tokens;
 

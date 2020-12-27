@@ -2,12 +2,12 @@
 
 pragma solidity >=0.6.0 <0.7.0;
 
-import '../PeriodicPrizeStrategy.sol';
-import '../../interface/ISponsor.sol';
+import "../PeriodicPrizeStrategy.sol";
+import "../../interface/ISponsor.sol";
 
 /* solium-disable security/no-block-members */
 /* only award external tokens*/
-contract SingleRandomWinnerCoin is PeriodicPrizeStrategy {
+contract SyxSingleWinner is PeriodicPrizeStrategy {
   ISponsor public sponsor;
 
   function setSponsor(address _sponsor) external onlyOwner {
@@ -25,10 +25,9 @@ contract SingleRandomWinnerCoin is PeriodicPrizeStrategy {
     uint256 prize = prizePool.captureAwardBalance();
     address winner = ticket.draw(randomNumber);
 
-      if (winner != address(0)) {
-        _awardTickets(winner, prize);
-        _awardAllExternalTokens(winner);
-      }
-    
+    if (winner != address(0)) {
+      _awardTickets(winner, prize);
+      _awardAllExternalTokens(winner);
+    }
   }
 }

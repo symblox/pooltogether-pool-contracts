@@ -3,25 +3,25 @@
 pragma solidity >=0.6.0 <0.7.0;
 pragma experimental ABIEncoderV2;
 
-import '@openzeppelin/contracts-upgradeable/utils/SafeCastUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+import "@openzeppelin/contracts-upgradeable/utils/SafeCastUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
-import '@pooltogether/pooltogether-rng-contracts/contracts/RNGInterface.sol';
-import '../token/TokenListenerInterface.sol';
-import '../prize-pool/PrizePool.sol';
-import '../prize-strategy/single-random-winner/SingleRandomWinnerCoinFactory.sol';
-import '../token/ControlledTokenProxyFactory.sol';
-import '../token/TicketProxyFactory.sol';
-import '../token/TicketInterface.sol';
-import '../token/Ticket.sol';
+import "@pooltogether/pooltogether-rng-contracts/contracts/RNGInterface.sol";
+import "../token/TokenListenerInterface.sol";
+import "../prize-pool/PrizePool.sol";
+import "../prize-strategy/syx-single-winner/SyxSingleWinnerFactory.sol";
+import "../token/ControlledTokenProxyFactory.sol";
+import "../token/TicketProxyFactory.sol";
+import "../token/TicketInterface.sol";
+import "../token/Ticket.sol";
 
-import '../external/openzeppelin/OpenZeppelinProxyFactoryInterface.sol';
+import "../external/openzeppelin/OpenZeppelinProxyFactoryInterface.sol";
 
 /* solium-disable security/no-block-members */
-contract SingleRandomWinnerCoinBuilder {
+contract SyxSingleWinnerBuilder {
   using SafeCastUpgradeable for uint256;
 
-  event SingleRandomWinnerCoinCreated(
+  event SyxSingleWinnerCreated(
     address indexed singleRandomWinner,
     address indexed ticket,
     address indexed sponsorship
@@ -47,33 +47,33 @@ contract SingleRandomWinnerCoinBuilder {
 
   ControlledTokenProxyFactory public controlledTokenProxyFactory;
   TicketProxyFactory public ticketProxyFactory;
-  SingleRandomWinnerCoinFactory public singleRandomWinnerCoinFactory;
+  SyxSingleWinnerFactory public syxSingleWinnerFactory;
 
   constructor(
-    SingleRandomWinnerCoinFactory _singleRandomWinnerCoinFactory,
+    SyxSingleWinnerFactory _syxSingleWinnerFactory,
     ControlledTokenProxyFactory _controlledTokenProxyFactory,
     TicketProxyFactory _ticketProxyFactory
   ) public {
     require(
-      address(_singleRandomWinnerCoinFactory) != address(0),
-      'SingleRandomWinnerBuilder/single-random-winner-factory-not-zero'
+      address(_syxSingleWinnerFactory) != address(0),
+      "SingleRandomWinnerBuilder/single-random-winner-factory-not-zero"
     );
     require(
       address(_controlledTokenProxyFactory) != address(0),
-      'SingleRandomWinnerBuilder/controlled-token-proxy-factory-not-zero'
+      "SingleRandomWinnerBuilder/controlled-token-proxy-factory-not-zero"
     );
-    require(address(_ticketProxyFactory) != address(0), 'SingleRandomWinnerBuilder/ticket-proxy-factory-not-zero');
+    require(address(_ticketProxyFactory) != address(0), "SingleRandomWinnerBuilder/ticket-proxy-factory-not-zero");
     ticketProxyFactory = _ticketProxyFactory;
-    singleRandomWinnerCoinFactory = _singleRandomWinnerCoinFactory;
+    syxSingleWinnerFactory = _syxSingleWinnerFactory;
     controlledTokenProxyFactory = _controlledTokenProxyFactory;
   }
 
-  function createSingleRandomWinner(
+  function createSyxSingleWinner(
     PrizePool prizePool,
     SingleRandomWinnerConfig calldata config,
     uint8 decimals,
     address owner
-  ) external returns (SingleRandomWinnerCoin) {
+  ) external returns (SyxSingleWinner) {
     PrizeStrategyConfig memory prizeStrategyConfig;
     prizeStrategyConfig.ticket = address(_createTicket(prizePool, config.ticketName, config.ticketSymbol, decimals));
 
@@ -81,7 +81,7 @@ contract SingleRandomWinnerCoinBuilder {
       _createControlledToken(prizePool, config.sponsorshipName, config.sponsorshipSymbol, decimals)
     );
 
-    SingleRandomWinnerCoin prizeStrategy = singleRandomWinnerCoinFactory.create();
+    SyxSingleWinner prizeStrategy = syxSingleWinnerFactory.create();
     prizeStrategy.initialize(
       config.prizePeriodStart,
       config.prizePeriodSeconds,
@@ -94,7 +94,7 @@ contract SingleRandomWinnerCoinBuilder {
 
     prizeStrategy.transferOwnership(owner);
 
-    emit SingleRandomWinnerCoinCreated(
+    emit SyxSingleWinnerCreated(
       address(prizeStrategy),
       prizeStrategyConfig.ticket,
       prizeStrategyConfig.sponsorship
