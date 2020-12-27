@@ -261,7 +261,7 @@ module.exports = async buidler => {
   // debug('\n  Deploying StakePrizePoolBuilder...')
   // const stakePrizePoolBuilderResult = await deploy('StakePrizePoolBuilder', {
   //   args: [
-  //     reserveRegistryResult.address,
+  //     reserveRegistry,
   //     stakePrizePoolProxyFactoryResult.address,
   //     singleRandomWinnerBuilderResult.address
   //   ],
@@ -272,7 +272,7 @@ module.exports = async buidler => {
   debug('\n  Deploying SyxPrizePoolBuilder...')
   const syxPrizePoolBuilderResult = await deploy('SyxPrizePoolBuilder', {
     args: [
-      reserveRegistryResult.address,
+      reserveRegistry,
       syxPrizePoolProxyFactoryResult.address,
       singleRandomWinnerBuilderResult.address,
       sponsorProxyFactoryResult.address
@@ -284,7 +284,7 @@ module.exports = async buidler => {
   // Display Contract Addresses
   debug('\n  Contract Deployments Complete!\n')
   debug('  - TicketProxyFactory:             ', ticketProxyFactoryResult.address)
-  debug('  - Reserve:                        ', reserveAddress)
+  debug('  - Reserve:                        ', reserveRegistry)
   // debug('  - Comptroller:                    ', comptrollerAddress)
   // debug('  - CompoundPrizePoolProxyFactory:  ', compoundPrizePoolProxyFactoryResult.address)
   debug('  - ControlledTokenProxyFactory:    ', controlledTokenProxyFactoryResult.address)
