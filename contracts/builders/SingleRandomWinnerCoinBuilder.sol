@@ -42,11 +42,9 @@ contract SingleRandomWinnerCoinBuilder {
   ControlledTokenProxyFactory public controlledTokenProxyFactory;
   TicketProxyFactory public ticketProxyFactory;
   SingleRandomWinnerCoinFactory public singleRandomWinnerCoinFactory;
-  address public trustedForwarder;
 
   constructor(
     SingleRandomWinnerCoinFactory _singleRandomWinnerCoinFactory,
-    address _trustedForwarder,
     ControlledTokenProxyFactory _controlledTokenProxyFactory,
     TicketProxyFactory _ticketProxyFactory
   ) public {
@@ -61,7 +59,6 @@ contract SingleRandomWinnerCoinBuilder {
     require(address(_ticketProxyFactory) != address(0), 'SingleRandomWinnerBuilder/ticket-proxy-factory-not-zero');
     ticketProxyFactory = _ticketProxyFactory;
     singleRandomWinnerCoinFactory = _singleRandomWinnerCoinFactory;
-    trustedForwarder = _trustedForwarder;
     controlledTokenProxyFactory = _controlledTokenProxyFactory;
   }
 
@@ -80,7 +77,6 @@ contract SingleRandomWinnerCoinBuilder {
 
     SingleRandomWinnerCoin prizeStrategy = singleRandomWinnerCoinFactory.create();
     prizeStrategy.initialize(
-      trustedForwarder,
       config.prizePeriodStart,
       config.prizePeriodSeconds,
       prizePool,
@@ -108,7 +104,7 @@ contract SingleRandomWinnerCoinBuilder {
     uint8 decimals
   ) internal returns (ControlledToken) {
     ControlledToken token = controlledTokenProxyFactory.create();
-    token.initialize(string(name), string(symbol), decimals, trustedForwarder, controller);
+    token.initialize(string(name), string(symbol), decimals, controller);
     return token;
   }
 
@@ -119,7 +115,7 @@ contract SingleRandomWinnerCoinBuilder {
     uint8 decimals
   ) internal returns (Ticket) {
     Ticket ticket = ticketProxyFactory.create();
-    ticket.initialize(string(name), string(symbol), decimals, trustedForwarder, controller);
+    ticket.initialize(string(name), string(symbol), decimals, controller);
     return ticket;
   }
 }

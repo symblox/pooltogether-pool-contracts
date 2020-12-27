@@ -3,9 +3,7 @@ const { expect } = require('chai')
 const buidler = require('@nomiclabs/buidler')
 const { ethers } = require('ethers')
 const { AddressZero } = ethers.constants
-const { deployMockContract } = require('./helpers/deployMockContract')
-const InitializableAdminUpgradeabilityProxy = require('@openzeppelin/upgrades/build/contracts/InitializableAdminUpgradeabilityProxy.json')
-const TokenListenerInterface = require('../build/TokenListenerInterface.json')
+const { getEvents } = require('./helpers/getEvents')
 
 const toWei = ethers.utils.parseEther
 
@@ -14,9 +12,17 @@ describe('StakePrizePoolBuilder', () => {
 
   let builder
 
+<<<<<<< HEAD
   let reserveRegistry, trustedForwarder, singleRandomWinnerBuilder, stakePrizePoolProxyFactory, rngServiceMock, token
 
   let singleRandomWinnerConfig, stakePrizePoolConfig
+=======
+  let reserveRegistry,
+      stakePrizePoolProxyFactory,
+      token
+
+  let stakePrizePoolConfig
+>>>>>>> v3.1.0
 
   beforeEach(async () => {
     ;[wallet] = await buidler.ethers.getSigners()
@@ -27,6 +33,7 @@ describe('StakePrizePoolBuilder', () => {
       wallet
     )
 
+<<<<<<< HEAD
     reserveRegistry = await deployments.get('ReserveRegistry')
     trustedForwarder = await deployments.get('TrustedForwarder')
     singleRandomWinnerBuilder = await deployments.get('SingleRandomWinnerBuilder')
@@ -48,6 +55,12 @@ describe('StakePrizePoolBuilder', () => {
       externalERC20Awards: []
     }
 
+=======
+    reserveRegistry = (await deployments.get("ReserveRegistry"))
+    stakePrizePoolProxyFactory = (await deployments.get("StakePrizePoolProxyFactory"))
+    token = (await deployments.get("Dai"))
+
+>>>>>>> v3.1.0
     stakePrizePoolConfig = {
       token: token.address,
       maxExitFeeMantissa: toWei('0.5'),
@@ -58,26 +71,14 @@ describe('StakePrizePoolBuilder', () => {
   describe('initialize()', () => {
     it('should setup all factories', async () => {
       expect(await builder.reserveRegistry()).to.equal(reserveRegistry.address)
-      expect(await builder.singleRandomWinnerBuilder()).to.equal(singleRandomWinnerBuilder.address)
-      expect(await builder.trustedForwarder()).to.equal(trustedForwarder.address)
       expect(await builder.stakePrizePoolProxyFactory()).to.equal(stakePrizePoolProxyFactory.address)
     })
   })
 
-  async function getEvents(tx) {
-    let receipt = await buidler.ethers.provider.getTransactionReceipt(tx.hash)
-    return receipt.logs.reduce((parsedEvents, log) => {
-      try {
-        parsedEvents.push(builder.interface.parseLog(log))
-      } catch (e) {}
-      return parsedEvents
-    }, [])
-  }
-
   describe('createStakePrizePool()', () => {
     it('should allow a user to create a StakePrizePool', async () => {
       let tx = await builder.createStakePrizePool(stakePrizePoolConfig)
-      let events = await getEvents(tx)
+      let events = await getEvents(builder, tx)
       let event = events[0]
 
       expect(event.name).to.equal('PrizePoolCreated')
@@ -91,6 +92,7 @@ describe('StakePrizePoolBuilder', () => {
       expect(await prizePool.prizeStrategy()).to.equal(AddressZero)
     })
   })
+<<<<<<< HEAD
 
   describe('createSingleRandomWinner()', () => {
     it('should allow a user to create Stake Prize Pools with Single Random Winner strategy', async () => {
@@ -150,4 +152,6 @@ describe('StakePrizePoolBuilder', () => {
       ])
     })
   })
+=======
+>>>>>>> v3.1.0
 })

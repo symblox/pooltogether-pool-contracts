@@ -24,13 +24,11 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
   SyxPrizePoolProxyFactory public syxPrizePoolProxyFactory;
   SingleRandomWinnerCoinBuilder public singleRandomWinnerCoinBuilder;
   SponsorProxyFactory public sponsorProxyFactory;
-  address public trustedForwarder;
 
   event SponsorCreated(address sender, address sponsor);
 
   constructor(
     RegistryInterface _reserveRegistry,
-    address _trustedForwarder,
     SyxPrizePoolProxyFactory _syxPrizePoolProxyFactory,
     SingleRandomWinnerCoinBuilder _singleRandomWinnerCoinBuilder,
     SponsorProxyFactory _sponsorProxyFactory
@@ -47,7 +45,6 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
     require(address(_sponsorProxyFactory) != address(0), 'SyxPrizePoolBuilder/sponsor-factory-not-zero');
     reserveRegistry = _reserveRegistry;
     singleRandomWinnerCoinBuilder = _singleRandomWinnerCoinBuilder;
-    trustedForwarder = _trustedForwarder;
     sponsorProxyFactory = _sponsorProxyFactory;
     syxPrizePoolProxyFactory = _syxPrizePoolProxyFactory;
   }
@@ -75,17 +72,12 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
   ) external returns (SyxPrizePool) {
     SyxPrizePool prizePool = syxPrizePoolProxyFactory.create();
 
-    SingleRandomWinnerCoin prizeStrategy = singleRandomWinnerCoinBuilder.createSingleRandomWinner(
-      prizePool,
-      prizeStrategyConfig,
-      decimals,
-      msg.sender
-    );
+    SingleRandomWinnerCoin prizeStrategy =
+      singleRandomWinnerCoinBuilder.createSingleRandomWinner(prizePool, prizeStrategyConfig, decimals, msg.sender);
 
     address[] memory tokens;
 
     prizePool.initialize(
-      trustedForwarder,
       reserveRegistry,
       tokens,
       prizePoolConfig.maxExitFeeMantissa,
@@ -111,14 +103,7 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
     SyxPrizePool prizePool = syxPrizePoolProxyFactory.create();
     address[] memory tokens;
 
-    prizePool.initialize(
-      trustedForwarder,
-      reserveRegistry,
-      tokens,
-      config.maxExitFeeMantissa,
-      config.maxTimelockDuration,
-      config.token
-    );
+    prizePool.initialize(reserveRegistry, tokens, config.maxExitFeeMantissa, config.maxTimelockDuration, config.token);
 
     prizePool.transferOwnership(msg.sender);
 

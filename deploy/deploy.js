@@ -31,9 +31,7 @@ module.exports = async buidler => {
 
   const harnessDisabled = !!process.env.DISABLE_HARNESS
 
-  let { deployer, rng, trustedForwarder, adminAccount, comptroller, reserve } = await getNamedAccounts()
-  debug(`  Deployer account: ${deployer}`)
-
+  let { deployer, rng, adminAccount, comptroller, reserveRegistry } = await getNamedAccounts()
   const chainId = parseInt(await getChainId(), 10)
   const isLocal = [1, 3, 4, 42, 106, 111].indexOf(chainId) == -1
   // 31337 is unit testing, 1337 is for coverage
@@ -54,32 +52,16 @@ module.exports = async buidler => {
   }
   debug('\n  adminAccount:  ', adminAccount)
 
-  console.log("user: ",signer._address)
+  console.log('user: ', signer._address)
   await deploy1820(signer)
 
-
   if (chainId === 111 || chainId === 106) {
-    debug('\n  Deploying TrustedForwarder...')
-    const deployResult = await deploy('TrustedForwarder', {
-      from: deployer,
-      skipIfAlreadyDeployed: true
-    })
-    trustedForwarder = deployResult.address
-
     // Display Contract Addresses
-    debug('\n  Velas Mock Contract Deployments;\n')
-    debug('  - TrustedForwarder: ', trustedForwarder)
+    debug('\n  VELAS network deployments;\n')
     debug('  - RNGService:       ', rng)
   }
 
   if (isLocal) {
-    debug('\n  Deploying TrustedForwarder...')
-    const deployResult = await deploy('TrustedForwarder', {
-      from: deployer,
-      skipIfAlreadyDeployed: true
-    })
-    trustedForwarder = deployResult.address
-
     debug('\n  Deploying RNGService...')
     const rngServiceMockResult = await deploy('RNGServiceMock', {
       from: deployer,
@@ -103,7 +85,7 @@ module.exports = async buidler => {
       skipIfAlreadyDeployed: true
     })
     const syxContract = await buidler.ethers.getContractAt('mockToken', syxResult.address, signer)
-    await syxContract.initialize("SYX","SYX",18,"100000000000000000000000")
+    await syxContract.initialize('SYX', 'SYX', 18, '100000000000000000000000')
 
     // debug('\n  Deploying Dai...')
     // const daiResult = await deploy('Dai', {
@@ -130,7 +112,7 @@ module.exports = async buidler => {
     })
     const rewardPoolContract = await buidler.ethers.getContractAt('mockRewardPool', rewardPoolResult.address, signer)
     await rewardPoolContract.setSyx(syxResult.address)
-    await syxContract.mint(rewardPoolResult.address, "100000000000000000000000")
+    await syxContract.mint(rewardPoolResult.address, '100000000000000000000000')
 
     // debug('\n  Deploying cDai...')
     // // should be about 20% APR
@@ -151,7 +133,6 @@ module.exports = async buidler => {
 
     // Display Contract Addresses
     debug('\n  Local Contract Deployments;\n')
-    debug('  - TrustedForwarder: ', trustedForwarder)
     debug('  - RNGService:       ', rng)
     // debug('  - Dai:              ', daiResult.address)
     debug('  - WVLX:             ', wvlxResult.address)
@@ -174,33 +155,43 @@ module.exports = async buidler => {
     if (adminAccount !== deployer) {
       await comptrollerContract.transferOwnership(adminAccount)
     }
+    debug(`  Created new comptroller ${comptrollerAddress}`)
+  } else {
+    debug(`  Using existing comptroller ${comptrollerAddress}`)
   }
 
-  let reserveAddress = reserve
+  if (!reserveRegistry) {
+    // if not set by named config
+    const reserveResult = await deploy('Reserve', {
+      from: deployer,
+      skipIfAlreadyDeployed: true
+    })
+    const reserveContract = await buidler.ethers.getContractAt('Reserve', reserveResult.address, signer)
+    if (adminAccount !== deployer) {
+      await reserveContract.transferOwnership(adminAccount)
+    }
 
-  // if not set by named config
-  const reserveResult = await deploy('Reserve', {
-    from: deployer,
-    skipIfAlreadyDeployed: true
-  })
-  reserveAddress = reserveResult.address
+    const reserveRegistryResult = await deploy('ReserveRegistry', {
+      contract: 'Registry',
+      from: deployer,
+      skipIfAlreadyDeployed: true
+    })
+    const reserveRegistryContract = await buidler.ethers.getContractAt(
+      'Registry',
+      reserveRegistryResult.address,
+      signer
+    )
+    if ((await reserveRegistryContract.lookup()) != reserveResult.address) {
+      await reserveRegistryContract.register(reserveResult.address)
+    }
+    if (adminAccount !== deployer) {
+      await reserveRegistryContract.transferOwnership(adminAccount)
+    }
 
-  const reserveContract = await buidler.ethers.getContractAt('Reserve', reserveResult.address, signer)
-  if (adminAccount !== deployer) {
-    await reserveContract.transferOwnership(adminAccount)
-  }
-
-  const reserveRegistryResult = await deploy('ReserveRegistry', {
-    contract: 'Registry',
-    from: deployer,
-    skipIfAlreadyDeployed: true
-  })
-  const reserveRegistryContract = await buidler.ethers.getContractAt('Registry', reserveRegistryResult.address, signer)
-  if ((await reserveRegistryContract.lookup()) != reserveResult.address) {
-    await reserveRegistryContract.register(reserveResult.address)
-  }
-  if (adminAccount !== deployer) {
-    await reserveRegistryContract.transferOwnership(adminAccount)
+    reserveRegistry = reserveRegistryResult.address
+    debug(`  Created new reserve registry ${reserveRegistry}`)
+  } else {
+    debug(`  Using existing reserve registry ${reserveRegistry}`)
   }
 
   debug('\n  Deploying ControlledTokenProxyFactory...')
@@ -235,7 +226,7 @@ module.exports = async buidler => {
 
   debug('\n  Deploying ControlledTokenBuilder...')
   const controlledTokenBuilderResult = await deploy('ControlledTokenBuilder', {
-    args: [trustedForwarder, controlledTokenProxyFactoryResult.address, ticketProxyFactoryResult.address],
+    args: [controlledTokenProxyFactoryResult.address, ticketProxyFactoryResult.address],
     from: deployer,
     skipIfAlreadyDeployed: true
   })
@@ -260,7 +251,6 @@ module.exports = async buidler => {
   const singleRandomWinnerBuilderResult = await deploy('SingleRandomWinnerCoinBuilder', {
     args: [
       singleRandomWinnerCoinFactoryResult.address,
-      trustedForwarder,
       controlledTokenProxyFactoryResult.address,
       ticketProxyFactoryResult.address
     ],
@@ -272,7 +262,6 @@ module.exports = async buidler => {
   // const stakePrizePoolBuilderResult = await deploy('StakePrizePoolBuilder', {
   //   args: [
   //     reserveRegistryResult.address,
-  //     trustedForwarder,
   //     stakePrizePoolProxyFactoryResult.address,
   //     singleRandomWinnerBuilderResult.address
   //   ],
@@ -284,7 +273,6 @@ module.exports = async buidler => {
   const syxPrizePoolBuilderResult = await deploy('SyxPrizePoolBuilder', {
     args: [
       reserveRegistryResult.address,
-      trustedForwarder,
       syxPrizePoolProxyFactoryResult.address,
       singleRandomWinnerBuilderResult.address,
       sponsorProxyFactoryResult.address
@@ -301,14 +289,14 @@ module.exports = async buidler => {
   // debug('  - CompoundPrizePoolProxyFactory:  ', compoundPrizePoolProxyFactoryResult.address)
   debug('  - ControlledTokenProxyFactory:    ', controlledTokenProxyFactoryResult.address)
   debug('  - SingleRandomWinnerCoinFactory: ', singleRandomWinnerCoinFactoryResult.address)
-  debug('  - SponsorProxyFactory: ',          sponsorProxyFactoryResult.address)
+  debug('  - SponsorProxyFactory: ', sponsorProxyFactoryResult.address)
   debug('  - ControlledTokenBuilder:         ', controlledTokenBuilderResult.address)
   debug('  - SingleRandomWinnerBuilder:      ', singleRandomWinnerBuilderResult.address)
   // debug('  - CompoundPrizePoolBuilder:       ', compoundPrizePoolBuilderResult.address)
   // debug('  - yVaultPrizePoolBuilder:         ', yVaultPrizePoolBuilderResult.address)
   // debug('  - StakePrizePoolBuilder:          ', stakePrizePoolBuilderResult.address)
   debug('  - SyxPrizePoolBuilder:          ', syxPrizePoolBuilderResult.address)
-  
+
   // if (permitAndDepositDaiResult) {
   //   debug('  - PermitAndDepositDai:            ', permitAndDepositDaiResult.address)
   // }

@@ -15,20 +15,13 @@ contract SyxPrizePool is PrizePool {
   event SyxPrizePoolInitialized(address indexed stakeToken);
 
   function initialize(
-    address _trustedForwarder,
     RegistryInterface _reserveRegistry,
-    address[] memory _controlledTokens,
+    ControlledTokenInterface[] memory _controlledTokens,
     uint256 _maxExitFeeMantissa,
     uint256 _maxTimelockDuration,
-    IERC20 _stakeToken
+    IERC20Upgradeable _stakeToken
   ) public initializer {
-    PrizePool.initialize(
-      _trustedForwarder,
-      _reserveRegistry,
-      _controlledTokens,
-      _maxExitFeeMantissa,
-      _maxTimelockDuration
-    );
+    PrizePool.initialize(_reserveRegistry, _controlledTokens, _maxExitFeeMantissa, _maxTimelockDuration);
     stakeToken = _stakeToken;
 
     emit SyxPrizePoolInitialized(address(stakeToken));
@@ -45,7 +38,7 @@ contract SyxPrizePool is PrizePool {
   /// prize strategy should not be allowed to move those tokens.
   /// @param _externalToken The address of the token to check
   /// @return True if the token may be awarded, false otherwise
-  function _canAwardExternal(address _externalToken) internal override view returns (bool) {
+  function _canAwardExternal(address _externalToken) internal view override returns (bool) {
     return address(stakeToken) != _externalToken;
   }
 
@@ -55,7 +48,7 @@ contract SyxPrizePool is PrizePool {
     return stakeToken.balanceOf(address(this));
   }
 
-  function _token() internal override view returns (IERC20) {
+  function _token() internal view override returns (IERC20) {
     return stakeToken;
   }
 
@@ -83,7 +76,7 @@ contract SyxPrizePool is PrizePool {
 
     _mint(to, amount, controlledToken, referrer);
 
-    ISvlx(address(_token())).deposit{ value: msg.value}();
+    ISvlx(address(_token())).deposit{ value: msg.value }();
     _supply(amount);
 
     emit Deposited(operator, to, controlledToken, amount, referrer);
@@ -99,30 +92,31 @@ contract SyxPrizePool is PrizePool {
     //When the amount of SVLX available is less than the amount entered, only the available amount is withdrawn
     uint256 actualWithdrawAmount = ISvlx(address(_token())).withdraw(withdrawAmount);
 
-    if(actualWithdrawAmount>0){
-        (uint256 exitFee, uint256 burnedCredit) = _calculateEarlyExitFeeLessBurnedCredit(from, controlledToken, actualWithdrawAmount);
-        require(exitFee <= maximumExitFee, 'PrizePool/exit-fee-exceeds-user-maximum');
-        // burn the credit
-        _burnCredit(from, controlledToken, burnedCredit);
-        // burn the tickets
-        ControlledToken(controlledToken).controllerBurnFrom(_msgSender(), from, actualWithdrawAmount);
-        // redeem the tickets less the fee
-        uint256 amountLessFee = actualWithdrawAmount.sub(exitFee);
-        uint256 redeemed = _redeem(amountLessFee);
-        // if (exitFee > 0) {
-        //   uint256 curBalance = address(this).balance;
-        //   if (address(sponsor) != address(0) && curBalance > 0) {
-        //     sponsor.depositAndStake{value: curBalance}(0);
-        //   }
-        // }
-        msg.sender.transfer(redeemed);
+    if (actualWithdrawAmount > 0) {
+      (uint256 exitFee, uint256 burnedCredit) =
+        _calculateEarlyExitFeeLessBurnedCredit(from, controlledToken, actualWithdrawAmount);
+      require(exitFee <= maximumExitFee, 'PrizePool/exit-fee-exceeds-user-maximum');
+      // burn the credit
+      _burnCredit(from, controlledToken, burnedCredit);
+      // burn the tickets
+      ControlledToken(controlledToken).controllerBurnFrom(_msgSender(), from, actualWithdrawAmount);
+      // redeem the tickets less the fee
+      uint256 amountLessFee = actualWithdrawAmount.sub(exitFee);
+      uint256 redeemed = _redeem(amountLessFee);
+      // if (exitFee > 0) {
+      //   uint256 curBalance = address(this).balance;
+      //   if (address(sponsor) != address(0) && curBalance > 0) {
+      //     sponsor.depositAndStake{value: curBalance}(0);
+      //   }
+      // }
+      msg.sender.transfer(redeemed);
 
-        emit InstantWithdrawal(_msgSender(), from, controlledToken, amount, redeemed, exitFee);
-        return exitFee;
-    }else{
-        emit InstantWithdrawal(_msgSender(), from, controlledToken, amount, 0, 0);
-        return 0;
-    } 
+      emit InstantWithdrawal(_msgSender(), from, controlledToken, amount, redeemed, exitFee);
+      return exitFee;
+    } else {
+      emit InstantWithdrawal(_msgSender(), from, controlledToken, amount, 0, 0);
+      return 0;
+    }
   }
 
   /// @notice Withdraw assets from the Prize Pool by placing them into the timelock.
@@ -142,11 +136,12 @@ contract SyxPrizePool is PrizePool {
     ISvlx svlx = ISvlx(address(_token()));
     uint256 maxWithdrawableAmount = svlx.withdrawableAmount();
     uint256 actualWithdrawAmount = amount;
-    if(maxWithdrawableAmount < amount){
+    if (maxWithdrawableAmount < amount) {
       actualWithdrawAmount = maxWithdrawableAmount;
     }
     uint256 blockTime = _currentTime();
-    (uint256 lockDuration, uint256 burnedCredit) = _calculateTimelockDuration(from, controlledToken, actualWithdrawAmount);
+    (uint256 lockDuration, uint256 burnedCredit) =
+      _calculateTimelockDuration(from, controlledToken, actualWithdrawAmount);
     uint256 unlockTimestamp = blockTime.add(lockDuration);
     _burnCredit(from, controlledToken, burnedCredit);
     ControlledToken(controlledToken).controllerBurnFrom(_msgSender(), from, actualWithdrawAmount);
@@ -193,7 +188,7 @@ contract SyxPrizePool is PrizePool {
         uint256 transferAmount = FixedPoint.multiplyUintByMantissa(redeemed, shareMantissa);
         //When the amount of SVLX available is less than the amount entered, only the available amount is withdrawn
         uint256 actualTransferAmount = ISvlx(address(_token())).withdraw(transferAmount);
-        require(actualTransferAmount >= transferAmount, "withdraw amount error");
+        require(actualTransferAmount >= transferAmount, 'withdraw amount error');
         address(uint160(users[i])).transfer(transferAmount);
         emit TimelockedWithdrawalSwept(operator, users[i], balances[i], transferAmount);
       }
@@ -213,8 +208,8 @@ contract SyxPrizePool is PrizePool {
 
   function depositInterest() public payable {
     uint256 curBalance = address(this).balance;
-    if(curBalance > 0){
-      sponsor.depositAndStake{value: curBalance}(0);
+    if (curBalance > 0) {
+      sponsor.depositAndStake{ value: curBalance }(0);
     }
   }
 }

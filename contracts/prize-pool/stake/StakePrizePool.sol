@@ -2,36 +2,28 @@
 
 pragma solidity >=0.6.0 <0.7.0;
 
-import '@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 
 import '../PrizePool.sol';
 
 contract StakePrizePool is PrizePool {
-  IERC20 private stakeToken;
+  IERC20Upgradeable private stakeToken;
 
   event StakePrizePoolInitialized(address indexed stakeToken);
 
   /// @notice Initializes the Prize Pool and Yield Service with the required contract connections
-  /// @param _trustedForwarder Address of the Forwarding Contract for GSN Meta-Txs
   /// @param _controlledTokens Array of addresses for the Ticket and Sponsorship Tokens controlled by the Prize Pool
   /// @param _maxExitFeeMantissa The maximum exit fee size, relative to the withdrawal amount
   /// @param _maxTimelockDuration The maximum length of time the withdraw timelock could be
   /// @param _stakeToken Address of the stake token
   function initialize(
-    address _trustedForwarder,
     RegistryInterface _reserveRegistry,
-    address[] memory _controlledTokens,
+    ControlledTokenInterface[] memory _controlledTokens,
     uint256 _maxExitFeeMantissa,
     uint256 _maxTimelockDuration,
-    IERC20 _stakeToken
+    IERC20Upgradeable _stakeToken
   ) public initializer {
-    PrizePool.initialize(
-      _trustedForwarder,
-      _reserveRegistry,
-      _controlledTokens,
-      _maxExitFeeMantissa,
-      _maxTimelockDuration
-    );
+    PrizePool.initialize(_reserveRegistry, _controlledTokens, _maxExitFeeMantissa, _maxTimelockDuration);
     stakeToken = _stakeToken;
 
     emit StakePrizePoolInitialized(address(stakeToken));
@@ -42,7 +34,7 @@ contract StakePrizePool is PrizePool {
   /// prize strategy should not be allowed to move those tokens.
   /// @param _externalToken The address of the token to check
   /// @return True if the token may be awarded, false otherwise
-  function _canAwardExternal(address _externalToken) internal override view returns (bool) {
+  function _canAwardExternal(address _externalToken) internal view override returns (bool) {
     return address(stakeToken) != _externalToken;
   }
 
@@ -52,7 +44,7 @@ contract StakePrizePool is PrizePool {
     return stakeToken.balanceOf(address(this));
   }
 
-  function _token() internal override view returns (IERC20) {
+  function _token() internal view override returns (IERC20Upgradeable) {
     return stakeToken;
   }
 
@@ -66,6 +58,6 @@ contract StakePrizePool is PrizePool {
   /// @param redeemAmount The amount of yield-bearing tokens to be redeemed
   /// @return The actual amount of tokens that were redeemed.
   function _redeem(uint256 redeemAmount) internal override returns (uint256) {
-    // no-op because nothing needs to be done
+    return redeemAmount;
   }
 }
