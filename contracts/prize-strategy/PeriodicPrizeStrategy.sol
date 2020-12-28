@@ -21,7 +21,7 @@ import './PeriodicPrizeStrategyListenerInterface.sol';
 import './PeriodicPrizeStrategyListenerLibrary.sol';
 
 /* solium-disable security/no-block-members */
-abstract contract PeriodicPrizeStrategy is Initializable, OwnableUpgradeable, TokenListener {
+abstract contract PeriodicPrizeStrategy is OwnableUpgradeable, TokenListener {
   using SafeMathUpgradeable for uint256;
   using SafeCastUpgradeable for uint256;
   using MappedSinglyLinkedList for MappedSinglyLinkedList.Mapping;
