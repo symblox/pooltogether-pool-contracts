@@ -161,7 +161,7 @@ contract SVLX is ReentrancyGuard {
             // claim 之前已经 order 过的数量
             // 既然已经 order 过，留在节点中也没用，全部 claim
             for (uint256 i = 0; i < pools.length(); ++i) {
-                if (_isWithdrawAllowed(_pools.at(i))) {
+                if (_isWithdrawAllowed()) {
                     claimOrderedWithdraw(_pools.at(i));
                 }
             }
@@ -174,7 +174,7 @@ contract SVLX is ReentrancyGuard {
             if (needToWithdraw == 0) {
                 break;
             }
-            if (_isWithdrawAllowed(pools.at(i))) {
+            if (_isWithdrawAllowed()) {
                 // max 的值，只有两种情况
                 // 1. stakeAmount map 里面的数，即质押的数量（节点不是验证者）
                 // 2. 当前 epoch 中存进去的数（节点是验证者）
@@ -211,7 +211,7 @@ contract SVLX is ReentrancyGuard {
             if (tempBalance >= wad || currentBalance >= wad) {
                 break;
             }
-            if (_isWithdrawAllowed(pools.at(i))) {
+            if (_isWithdrawAllowed()) {
                 uint256 remainingWad = wad.sub(tempBalance);
                 uint256 maxOrderWithdrawal =
                     auRa.maxWithdrawOrderAllowed(pools.at(i), address(this));
@@ -237,33 +237,11 @@ contract SVLX is ReentrancyGuard {
         return withdrawAmount;
     }
 
-    /// @notice 查询可直接从合约中取出的数量
-    // function withdrawableAmount() public view returns (uint256 res) {
-        // EnumerableSet.AddressSet storage _pools = pools;
-        // IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
-        // res = calcBalance();
-        // for (uint256 i = 0; i < pools.length(); ++i) {
-        //     if (_isWithdrawAllowed(_pools.at(i))) {
-        //         res = res.add(claimableOrderedAmount(_pools.at(i)));
-        //     }
-        // }
-
-        // for (uint256 i = 0; i < pools.length(); ++i) {
-        //     if (_isWithdrawAllowed(pools.at(i))) {
-        //         uint256 maxAllowed =
-        //             auRa.maxWithdrawAllowed(pools.at(i), address(this));
-        //         // 锁仓数量
-        //         uint256 stakeAmount =
-        //             auRa.stakeAmount(pools.at(i), address(this));
-        //         res = res.add(maxAllowed.min(stakeAmount));
-        //     }
-        // }
-    // }
     function withdrawableAmount() public view returns (uint256 res) {
         IStakingAuRa auRa = IStakingAuRa(stakingAuRa);
         res = calcBalance();
         for (uint256 i = 0; i < pools.length(); ++i) {
-            if (_isWithdrawAllowed(pools.at(i))) {
+            if (_isWithdrawAllowed()) {
                 res = res.add(claimableOrderedAmount(pools.at(i)));
             }
             uint256 maxAllowed = auRa.maxWithdrawAllowed(pools.at(i), address(this));
@@ -364,7 +342,7 @@ contract SVLX is ReentrancyGuard {
     }
 
     /// @notice 是否可以取款
-    function _isWithdrawAllowed(address poolAddress)
+    function _isWithdrawAllowed()
         internal
         view
         returns (bool)
