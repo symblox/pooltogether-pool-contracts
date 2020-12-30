@@ -5,9 +5,9 @@ interface ISvlx {
 
   function withdraw(uint256 wad) external returns(uint256);
 
-  function claimInterest() external;
+  function claimRewards() external;
 
   function claimable(address account) external returns(uint256);
 
-  function withdrawableAmount() external returns(uint256);
+  function getTotalWithdrawable() external returns(uint256);
 }

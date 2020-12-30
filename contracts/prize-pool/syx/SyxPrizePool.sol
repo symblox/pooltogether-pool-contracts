@@ -93,18 +93,18 @@ contract SyxPrizePool is PrizePool {
   ) external override nonReentrant onlyControlledToken(controlledToken) returns (uint256) {
     uint256 withdrawAmount = _redeem(amount);
     //When the amount of SVLX available is less than the amount entered, only the available amount is withdrawn
-    uint256 actualWithdrawAmount = ISvlx(address(_token())).withdraw(withdrawAmount);
+    uint256 canWithdraw = ISvlx(address(_token())).withdraw(withdrawAmount);
 
-    if (actualWithdrawAmount > 0) {
+    if (canWithdraw > 0) {
       (uint256 exitFee, uint256 burnedCredit) =
-        _calculateEarlyExitFeeLessBurnedCredit(from, controlledToken, actualWithdrawAmount);
+        _calculateEarlyExitFeeLessBurnedCredit(from, controlledToken, canWithdraw);
       require(exitFee <= maximumExitFee, "PrizePool/exit-fee-exceeds-user-maximum");
       // burn the credit
       _burnCredit(from, controlledToken, burnedCredit);
       // burn the tickets
-      ControlledToken(controlledToken).controllerBurnFrom(_msgSender(), from, actualWithdrawAmount);
+      ControlledToken(controlledToken).controllerBurnFrom(_msgSender(), from, canWithdraw);
       // redeem the tickets less the fee
-      uint256 amountLessFee = actualWithdrawAmount.sub(exitFee);
+      uint256 amountLessFee = canWithdraw.sub(exitFee);
       uint256 redeemed = _redeem(amountLessFee);
       // if (exitFee > 0) {
       //   uint256 curBalance = address(this).balance;
@@ -136,20 +136,18 @@ contract SyxPrizePool is PrizePool {
     uint256 amount,
     address controlledToken
   ) external override nonReentrant onlyControlledToken(controlledToken) returns (uint256) {
-    ISvlx svlx = ISvlx(address(_token()));
-    uint256 maxWithdrawableAmount = svlx.withdrawableAmount();
-    uint256 actualWithdrawAmount = amount;
-    if (maxWithdrawableAmount < amount) {
-      actualWithdrawAmount = maxWithdrawableAmount;
+    uint256 maxWithdrawable = ISvlx(address(_token())).getTotalWithdrawable();
+    uint256 canWithdraw = amount;
+    if (maxWithdrawable < amount) {
+      canWithdraw = maxWithdrawable;
     }
     uint256 blockTime = _currentTime();
-    (uint256 lockDuration, uint256 burnedCredit) =
-      _calculateTimelockDuration(from, controlledToken, actualWithdrawAmount);
+    (uint256 lockDuration, uint256 burnedCredit) = _calculateTimelockDuration(from, controlledToken, canWithdraw);
     uint256 unlockTimestamp = blockTime.add(lockDuration);
     _burnCredit(from, controlledToken, burnedCredit);
-    ControlledToken(controlledToken).controllerBurnFrom(_msgSender(), from, actualWithdrawAmount);
-    _mintTimelock(from, actualWithdrawAmount, unlockTimestamp);
-    emit TimelockedWithdrawal(_msgSender(), from, controlledToken, actualWithdrawAmount, unlockTimestamp);
+    ControlledToken(controlledToken).controllerBurnFrom(_msgSender(), from, canWithdraw);
+    _mintTimelock(from, canWithdraw, unlockTimestamp);
+    emit TimelockedWithdrawal(_msgSender(), from, controlledToken, canWithdraw, unlockTimestamp);
 
     // return the block at which the funds will be available
     return unlockTimestamp;
@@ -206,7 +204,7 @@ contract SyxPrizePool is PrizePool {
   }
 
   function claimInterest() public {
-    ISvlx(address(_token())).claimInterest();
+    ISvlx(address(_token())).claimRewards();
   }
 
   function depositInterest() public payable {
