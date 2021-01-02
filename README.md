@@ -1,34 +1,22 @@
-<p align="center">
-  <a href="https://github.com/pooltogether/pooltogether--brand-assets">
-    <img src="https://github.com/pooltogether/pooltogether--brand-assets/blob/977e03604c49c63314450b5d432fe57d34747c66/logo/pooltogether-logo--purple-gradient.png?raw=true" alt="PoolTogether Brand" style="max-width:100%;" width="200">
-  </a>
-</p>
-
-<br />
-
-## PoolTogether Prize Savings Protocol
-
-[![Coverage Status](https://coveralls.io/repos/github/pooltogether/pooltogether-pool-contracts/badge.svg?branch=version-3)](https://coveralls.io/github/pooltogether/pooltogether-pool-contracts?branch=version-3)
+# Pooled VELAS (pVLX)
 
 [![built-with openzeppelin](https://img.shields.io/badge/built%20with-OpenZeppelin-3677FF)](https://docs.openzeppelin.com/)
 
-The [PoolTogether](https://www.pooltogether.com/) Prize Savings Protocol Ethereum smart contracts.
-
-For an overview of the concepts and API please see the [documentation](https://docs.pooltogether.com/)
+The [Symblox](https://symblox.io/) Pooled VELAS smart contracts.
 
 #### Setup
 
 This project is available as an NPM package:
 
 ```bash
-$ yarn add @pooltogether/pooltogether-contracts
+$ yarn add @symblox/pvlx-contracts
 ```
 
 #### Usage
 
 ###### Artifacts
 
-There are deployment artifacts available in the `deployments/` directory.  This includes:
+There are deployment artifacts available in the `deployments/` directory. This includes:
 
 - Builders
 - Proxy Factories
@@ -40,22 +28,18 @@ Prize Pools and Prize Strategies are not included, as they are created using the
 For example, to pull in the CompoundPrizePoolBuilder artifact:
 
 ```javascript
-const CompoundPrizePoolBuilder = require('@pooltogether/pooltogether-contracts/deployments/rinkeby/CompoundPrizePoolBuilder.json')
-const {
-  abi, 
-  address, 
-  receipt
- } = CompoundPrizePoolBuilder
+const CompoundPrizePoolBuilder = require("@symblox/pvlx-contracts/deployments/rinkeby/CompoundPrizePoolBuilder.json")
+const { abi, address, receipt } = CompoundPrizePoolBuilder
 ```
 
 ###### ABIs
 
-Application Binary Interfaces for all PoolTogether contracts and related contracts are available in the `abis/` directory.
+Application Binary Interfaces for all pVLX contracts and related contracts are available in the `abis/` directory.
 
 For example, to pull in the PrizePool ABI:
 
 ```javascript
-const PrizePool = require('@pooltogether/pooltogether-contracts/abis/PrizePool.json')
+const PrizePool = require("@symblox/pvlx-contracts/abis/PrizePool.json")
 ```
 
 #### Development
