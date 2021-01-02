@@ -790,11 +790,6 @@
   resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.8.2.tgz#a6a5e93ac8dca6884a99a532f133beba59b87b69"
   integrity sha512-8LySx3qrNXPgB5JiULfG10O3V7QTxI/TLzSw5hFQhXWSkVxZBAv4rZQ0sYgLEbc8g3L2lmnujj1hKul38Eu5NQ==
 
-"@symblox/pooltogether-rng-contracts@^1.0.0-symblox.1":
-  version "1.0.0-symblox.1"
-  resolved "https://registry.yarnpkg.com/@symblox/pooltogether-rng-contracts/-/pooltogether-rng-contracts-1.0.0-symblox.1.tgz#4df8514491f010c8271bd6bc1b413258d65d0165"
-  integrity sha512-W51Y6qMHdFNQmd31DGbd2/Zj9pmbrYlIuYjl0Yxto6+GQCngx0ZfURRcy5WZjpgYPNCZoB8gc4nhixBWvL/lZQ==
-
 "@symblox/pvlx-rng-contracts@^3.1.1":
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@symblox/pvlx-rng-contracts/-/pvlx-rng-contracts-3.1.1.tgz#b97a8388642a5ed098d176040f56a81f0c9b90c6"
