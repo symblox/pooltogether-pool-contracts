@@ -650,11 +650,6 @@
   resolved "https://registry.yarnpkg.com/@pooltogether/fixed-point/-/fixed-point-1.0.0-beta.2.tgz#d76a1e77f21833e9b680296d65526b0ffd7415d7"
   integrity sha512-aUw4R0Z2oM0AK3W4LIXyBaojTOzRRbhLDHX0egeuvxfjy4gBb6X66v81gI7Wngg/7O0y9QL/B8jWkUnAFzhTig==
 
-"@pooltogether/pooltogether-rng-contracts@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@pooltogether/pooltogether-rng-contracts/-/pooltogether-rng-contracts-1.0.0.tgz#191d155dc960559cce06b7ec3b0f9ed2caed0f46"
-  integrity sha512-jQub/+qPLQwTFtbBCvvyIEqxJDEBEV/hgLKnuocBg2/GySWtHLz67WCy17bNn1hZw8nWIt8Ih8h+7iT2UJhtmQ==
-
 "@pooltogether/uniform-random-number@1.0.0-beta.1":
   version "1.0.0-beta.1"
   resolved "https://registry.yarnpkg.com/@pooltogether/uniform-random-number/-/uniform-random-number-1.0.0-beta.1.tgz#72257401fe8536e95f9f812f1d249262659084a7"
@@ -799,6 +794,11 @@
   version "1.0.0-symblox.1"
   resolved "https://registry.yarnpkg.com/@symblox/pooltogether-rng-contracts/-/pooltogether-rng-contracts-1.0.0-symblox.1.tgz#4df8514491f010c8271bd6bc1b413258d65d0165"
   integrity sha512-W51Y6qMHdFNQmd31DGbd2/Zj9pmbrYlIuYjl0Yxto6+GQCngx0ZfURRcy5WZjpgYPNCZoB8gc4nhixBWvL/lZQ==
+
+"@symblox/pvlx-rng-contracts@^3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@symblox/pvlx-rng-contracts/-/pvlx-rng-contracts-3.1.1.tgz#b97a8388642a5ed098d176040f56a81f0c9b90c6"
+  integrity sha512-FLg5t2u0YsxhEFBxjypLgvZgGxaeFBWiJd3mluKSpaF9VnMTT8jKWPoBgSdyD9WfMQ49QKy4VhEdGfZAZm44kQ==
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"
@@ -2219,6 +2219,11 @@ bufferutil@^4.0.1:
   integrity sha512-xowrxvpxojqkagPcWRQVXZl0YXhRhAtBEIq3VoER1NH5Mw1n1o0ojdspp+GS2J//2gCVyrzQDApQ4unGF+QOoA==
   dependencies:
     node-gyp-build "~3.7.0"
+
+buidler-abi-exporter@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/buidler-abi-exporter/-/buidler-abi-exporter-1.0.1.tgz#45ed6863318d31c8795cb681ec84b8bdf99b6cd0"
+  integrity sha512-LeIX79h2rx6DEbLjHFjB7JYMdRaUTZvH3KyWKEeFmVAdqStA1J4NWcEjlF78lBPB6U5pWFKEQR0a4g67lTmDeQ==
 
 buidler-deploy@^0.5.18:
   version "0.5.18"

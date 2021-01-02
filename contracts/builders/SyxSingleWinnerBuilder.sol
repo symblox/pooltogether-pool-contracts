@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts-upgradeable/utils/SafeCastUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
-import "@pooltogether/pooltogether-rng-contracts/contracts/RNGInterface.sol";
+import "@symblox/pvlx-rng-contracts/contracts/RNGInterface.sol";
 import "../token/TokenListenerInterface.sol";
 import "../prize-pool/PrizePool.sol";
 import "../prize-strategy/syx-single-winner/SyxSingleWinnerFactory.sol";
@@ -21,11 +21,7 @@ import "../external/openzeppelin/OpenZeppelinProxyFactoryInterface.sol";
 contract SyxSingleWinnerBuilder {
   using SafeCastUpgradeable for uint256;
 
-  event SyxSingleWinnerCreated(
-    address indexed singleRandomWinner,
-    address indexed ticket,
-    address indexed sponsorship
-  );
+  event SyxSingleWinnerCreated(address indexed singleRandomWinner, address indexed ticket, address indexed sponsorship);
 
   struct SingleRandomWinnerConfig {
     RNGInterface rngService;
@@ -94,11 +90,7 @@ contract SyxSingleWinnerBuilder {
 
     prizeStrategy.transferOwnership(owner);
 
-    emit SyxSingleWinnerCreated(
-      address(prizeStrategy),
-      prizeStrategyConfig.ticket,
-      prizeStrategyConfig.sponsorship
-    );
+    emit SyxSingleWinnerCreated(address(prizeStrategy), prizeStrategyConfig.ticket, prizeStrategyConfig.sponsorship);
 
     return prizeStrategy;
   }

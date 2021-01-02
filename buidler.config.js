@@ -1,27 +1,28 @@
-const networks = require('./buidler.networks')
+const networks = require("./buidler.networks")
 
-const { TASK_COMPILE_GET_COMPILER_INPUT } = require('@nomiclabs/buidler/builtin-tasks/task-names')
+const { TASK_COMPILE_GET_COMPILER_INPUT } = require("@nomiclabs/buidler/builtin-tasks/task-names")
 
-const RNGBlockhashRopsten = require('@pooltogether/pooltogether-rng-contracts/deployments/ropsten/RNGBlockhash.json')
-const RNGBlockhashRinkeby = require('@pooltogether/pooltogether-rng-contracts/deployments/rinkeby/RNGBlockhash.json')
-const RNGBlockhashKovan = require('@pooltogether/pooltogether-rng-contracts/deployments/kovan/RNGBlockhash.json')
-const RNGBlockhashVlxTest = require('@symblox/pooltogether-rng-contracts/deployments/vlxtest/RNGBlockhash.json')
+const RNGBlockhashRopsten = require("@symblox/pvlx-rng-contracts/deployments/ropsten/RNGBlockhash.json")
+const RNGBlockhashRinkeby = require("@symblox/pvlx-rng-contracts/deployments/rinkeby/RNGBlockhash.json")
+const RNGBlockhashKovan = require("@symblox/pvlx-rng-contracts/deployments/kovan/RNGBlockhash.json")
+const RNGBlockhashVlxTest = require("@symblox/pvlx-rng-contracts/deployments/vlxtest/RNGBlockhash.json")
 
-usePlugin('@nomiclabs/buidler-waffle')
-usePlugin('buidler-gas-reporter')
-usePlugin('solidity-coverage')
-usePlugin('@nomiclabs/buidler-etherscan')
-usePlugin('buidler-deploy')
+usePlugin("@nomiclabs/buidler-waffle")
+usePlugin("buidler-gas-reporter")
+usePlugin("solidity-coverage")
+usePlugin("@nomiclabs/buidler-etherscan")
+usePlugin("buidler-deploy")
+usePlugin("buidler-abi-exporter")
 
 // This must occur after buidler-deploy!
 task(TASK_COMPILE_GET_COMPILER_INPUT).setAction(async (_, __, runSuper) => {
   const input = await runSuper()
-  input.settings.metadata.useLiteralContent = process.env.USE_LITERAL_CONTENT != 'false'
+  input.settings.metadata.useLiteralContent = process.env.USE_LITERAL_CONTENT != "false"
   console.log(`useLiteralContent: ${input.settings.metadata.useLiteralContent}`)
   return input
 })
 
-task('accounts', 'Prints the list of accounts', async () => {
+task("accounts", "Prints the list of accounts", async () => {
   const walletMnemonic = ethers.Wallet.fromMnemonic(process.env.HDWALLET_MNEMONIC)
   console.log(walletMnemonic.address)
 })
@@ -38,28 +39,28 @@ task('accounts', 'Prints the list of accounts', async () => {
 //     console.log(ethers.utils.parseEther(balance), 'ETH')
 //   })
 
-const testnetAdmin = '0xFC32E7c7c55391ebb4F91187c91418bF96860cA9' // Account 1
-const testnetUser1 = '0xFC32E7c7c55391ebb4F91187c91418bF96860cA9' // Account 3
-const testnetUser2 = '0xFC32E7c7c55391ebb4F91187c91418bF96860cA9' // Account 4
-const testnetUser3 = '0xFC32E7c7c55391ebb4F91187c91418bF96860cA9' // Account 5
+const testnetAdmin = "0xFC32E7c7c55391ebb4F91187c91418bF96860cA9" // Account 1
+const testnetUser1 = "0xFC32E7c7c55391ebb4F91187c91418bF96860cA9" // Account 3
+const testnetUser2 = "0xFC32E7c7c55391ebb4F91187c91418bF96860cA9" // Account 4
+const testnetUser3 = "0xFC32E7c7c55391ebb4F91187c91418bF96860cA9" // Account 5
 
 const optimizerEnabled = !process.env.OPTIMIZER_DISABLED
 
 const config = {
   solc: {
-    version: '0.6.12',
+    version: "0.6.12",
     optimizer: {
       enabled: optimizerEnabled,
       runs: 200
     },
-    evmVersion: 'istanbul'
+    evmVersion: "istanbul"
   },
   paths: {
-    artifacts: './build'
+    artifacts: "./build"
   },
   networks,
   gasReporter: {
-    currency: 'CHF',
+    currency: "CHF",
     gasPrice: 21,
     enabled: process.env.REPORT_GAS ? true : false
   },
@@ -68,10 +69,10 @@ const config = {
       default: 0
     },
     comptroller: {
-      1: '0x4027dE966127af5F015Ea1cfd6293a3583892668'
+      1: "0x4027dE966127af5F015Ea1cfd6293a3583892668"
     },
     reserveRegistry: {
-      1: '0x3e8b9901dBFE766d3FE44B36c180A1bca2B9A295'
+      1: "0x3e8b9901dBFE766d3FE44B36c180A1bca2B9A295"
     },
     rng: {
       111: RNGBlockhashVlxTest.address,
@@ -113,6 +114,22 @@ const config = {
   },
   mocha: {
     timeout: 30000
+  },
+  abiExporter: {
+    path: "./abis",
+    only: [
+      "IERC20Upgradeable",
+      "CTokenInterface",
+      "PrizePool",
+      "MultipleWinners",
+      "SingleRandomWinner",
+      "PeriodicPrizeStrategy",
+      "CompoundPrizePool",
+      "SyxPrizePool",
+      "SyxSingleWinner",
+      "Sponsor"
+    ],
+    clear: true
   }
 }
 
