@@ -17,18 +17,18 @@ contract SyxPrizePool is PrizePool {
 
   event SyxPrizePoolInitialized(address indexed stakeToken);
 
-  function initialize(
-    RegistryInterface _reserveRegistry,
-    ControlledTokenInterface[] memory _controlledTokens,
-    uint256 _maxExitFeeMantissa,
-    uint256 _maxTimelockDuration,
-    IERC20Upgradeable _stakeToken
-  ) public initializer {
-    PrizePool.initialize(_reserveRegistry, _controlledTokens, _maxExitFeeMantissa, _maxTimelockDuration);
-    stakeToken = _stakeToken;
+  // function initialize(
+  //   RegistryInterface _reserveRegistry,
+  //   ControlledTokenInterface[] memory _controlledTokens,
+  //   uint256 _maxExitFeeMantissa,
+  //   uint256 _maxTimelockDuration,
+  //   IERC20Upgradeable _stakeToken
+  // ) public initializer {
+  //   PrizePool.initialize(_reserveRegistry, _controlledTokens, _maxExitFeeMantissa, _maxTimelockDuration);
+  //   stakeToken = _stakeToken;
 
-    emit SyxPrizePoolInitialized(address(stakeToken));
-  }
+  //   emit SyxPrizePoolInitialized(address(stakeToken));
+  // }
 
   receive() external payable {}
 

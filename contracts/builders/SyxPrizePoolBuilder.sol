@@ -87,8 +87,8 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
       reserveRegistry,
       tokens,
       prizePoolConfig.maxExitFeeMantissa,
-      prizePoolConfig.maxTimelockDuration,
-      prizePoolConfig.token
+      prizePoolConfig.maxTimelockDuration
+      // prizePoolConfig.token
     );
 
     _setupSingleRandomWinner(
@@ -109,7 +109,7 @@ contract SyxPrizePoolBuilder is PrizePoolBuilder {
     SyxPrizePool prizePool = syxPrizePoolProxyFactory.create();
     ControlledTokenInterface[] memory tokens;
 
-    prizePool.initialize(reserveRegistry, tokens, config.maxExitFeeMantissa, config.maxTimelockDuration, config.token);
+    prizePool.initialize(reserveRegistry, tokens, config.maxExitFeeMantissa, config.maxTimelockDuration);
 
     prizePool.transferOwnership(msg.sender);
 
