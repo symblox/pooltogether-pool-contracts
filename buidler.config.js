@@ -12,7 +12,8 @@ usePlugin("buidler-gas-reporter")
 usePlugin("solidity-coverage")
 usePlugin("@nomiclabs/buidler-etherscan")
 usePlugin("buidler-deploy")
-usePlugin("buidler-abi-exporter")
+// usePlugin("buidler-abi-exporter")
+usePlugin("@openzeppelin/buidler-upgrades")
 
 // This must occur after buidler-deploy!
 task(TASK_COMPILE_GET_COMPILER_INPUT).setAction(async (_, __, runSuper) => {

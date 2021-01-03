@@ -32,6 +32,8 @@
     "update-gitbook-networks": "./scripts/update-gitbook-networks.sh",
     "mint": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run --network localhost scripts/mint.js",
     "setup": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/setup-syx.js --network",
+    "createSyx": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/createSyxPool.js --network",
+    "upgradeSyx": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/upgradeSyxPool.js --network",
     "npm:publish": "npm publish --access public"
   },
   "dependencies": {
@@ -47,6 +49,7 @@
     "@nomiclabs/buidler-ethers": "^2.0.0",
     "@nomiclabs/buidler-etherscan": "^2.1.0",
     "@nomiclabs/buidler-waffle": "^2.0.0",
+    "@openzeppelin/buidler-upgrades": "^1.2.1",
     "@resolver-engine/core": "0.3.3",
     "@truffle/hdwallet-provider": "1.0.34",
     "buidler-abi-exporter": "^1.0.1",
