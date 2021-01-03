@@ -1,5 +1,4 @@
 const buidler = require("@nomiclabs/buidler")
-const { deployments } = require("@nomiclabs/buidler")
 
 let addresses = {
   106: {},
@@ -30,7 +29,7 @@ async function getEvents(tx) {
 }
 
 const setup = async () => {
-  const { ethers, getChainId } = buidler
+  const { ethers, getChainId, deployments } = buidler
   const { AddressZero } = ethers.constants
   const toWei = ethers.utils.parseEther
 
@@ -48,6 +47,9 @@ const setup = async () => {
   )
   console.log(`syxBuilder address: ${syxBuilder.address}`)
 
+  let prizePeriodStart = 1609675200
+  let prizePeriodSeconds = 60
+
   if (isTestEnvironment) {
     rngService = await deployments.get("RNGServiceMock")
     addresses[chainId].rngService = rngService.address
@@ -63,13 +65,16 @@ const setup = async () => {
     addresses[chainId].bpt = bpt.address
     const rewardPool = await deployments.get("mockRewardPool")
     addresses[chainId].rewardPool = rewardPool.address
+
+    prizePeriodStart = 10
+    prizePeriodSeconds = 10
   }
 
   syxSingleWinnerConfig = {
     proxyAdmin: AddressZero,
     rngService: addresses[chainId].rngService,
-    prizePeriodStart: 20,
-    prizePeriodSeconds: 10,
+    prizePeriodStart: prizePeriodStart,
+    prizePeriodSeconds: prizePeriodSeconds,
     ticketName: "pooled Velas",
     ticketSymbol: "pVLX",
     sponsorshipName: "Sponsorship",

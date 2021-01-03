@@ -71,7 +71,7 @@ module.exports = async buidler => {
 
     debug("\n  Deploying SVLX ...")
     const svlxResult = await deploy("SVLX", {
-      contract: "WVLX",
+      contract: "mockToken",
       args: [],
       from: deployer,
       skipIfAlreadyDeployed: true
