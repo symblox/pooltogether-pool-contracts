@@ -1,0 +1,190 @@
+{
+  "manifestVersion": "3.1",
+  "impls": {
+    "a0d0973a305efbdec76ff5cdddfb6cdb88aa31cf9dbadc3ed14161ef6763ab1b": {
+      "address": "0xa67B7CA02E8c23a23283d451de20f3419A051cD3",
+      "txHash": "0xe89ca176a81290125377472893ca53ebb8013253ff1806fba28c33855448c235",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol:24"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol:29"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/GSN/ContextUpgradeable.sol:31"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:20"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:74"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "reserveRegistry",
+            "type": "t_contract(RegistryInterface)26201",
+            "src": "contracts/prize-pool/PrizePool.sol:125"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "_tokens",
+            "type": "t_struct(Mapping)30940_storage",
+            "src": "contracts/prize-pool/PrizePool.sol:128"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "prizeStrategy",
+            "type": "t_contract(TokenListenerInterface)30868",
+            "src": "contracts/prize-pool/PrizePool.sol:131"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "maxExitFeeMantissa",
+            "type": "t_uint256",
+            "src": "contracts/prize-pool/PrizePool.sol:135"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "maxTimelockDuration",
+            "type": "t_uint256",
+            "src": "contracts/prize-pool/PrizePool.sol:138"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "timelockTotalSupply",
+            "type": "t_uint256",
+            "src": "contracts/prize-pool/PrizePool.sol:141"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "reserveTotalSupply",
+            "type": "t_uint256",
+            "src": "contracts/prize-pool/PrizePool.sol:144"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "liquidityCap",
+            "type": "t_uint256",
+            "src": "contracts/prize-pool/PrizePool.sol:147"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "_currentAwardBalance",
+            "type": "t_uint256",
+            "src": "contracts/prize-pool/PrizePool.sol:150"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "_timelockBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/prize-pool/PrizePool.sol:153"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "_unlockTimestamps",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts/prize-pool/PrizePool.sol:156"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "_tokenCreditPlans",
+            "type": "t_mapping(t_address,t_struct(CreditPlan)19090_storage)",
+            "src": "contracts/prize-pool/PrizePool.sol:159"
+          },
+          {
+            "contract": "PrizePool",
+            "label": "_tokenCreditBalances",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_struct(CreditBalance)19097_storage))",
+            "src": "contracts/prize-pool/PrizePool.sol:162"
+          },
+          {
+            "contract": "SyxPrizePool",
+            "label": "stakeToken",
+            "type": "t_contract(IERC20Upgradeable)9490",
+            "src": "contracts/prize-pool/syx/SyxPrizePool.sol:15"
+          },
+          {
+            "contract": "SyxPrizePool",
+            "label": "sponsor",
+            "type": "t_contract(ISponsor)18675",
+            "src": "contracts/prize-pool/syx/SyxPrizePool.sol:16"
+          }
+        ],
+        "types": {
+          "t_contract(IERC20Upgradeable)9490": {
+            "label": "contract IERC20Upgradeable"
+          },
+          "t_contract(ISponsor)18675": {
+            "label": "contract ISponsor"
+          },
+          "t_contract(RegistryInterface)26201": {
+            "label": "contract RegistryInterface"
+          },
+          "t_struct(Mapping)30940_storage": {
+            "label": "struct MappedSinglyLinkedList.Mapping"
+          },
+          "t_contract(TokenListenerInterface)30868": {
+            "label": "contract TokenListenerInterface"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_mapping(t_address,t_struct(CreditPlan)19090_storage)": {
+            "label": "mapping(address => struct PrizePool.CreditPlan)"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_struct(CreditBalance)19097_storage))": {
+            "label": "mapping(address => mapping(address => struct PrizePool.CreditBalance))"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    }
+  },
+  "admin": {
+    "address": "0x38636Be16dbc8bA7b8066A4913cF06eEdbd71099",
+    "txHash": "0xcccba5e6681871c06866c5e32ed35310da584dac598fc1294fe0696cc715ec87"
+  }
+}
