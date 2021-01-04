@@ -31,7 +31,7 @@ module.exports = async buidler => {
 
   const harnessDisabled = !!process.env.DISABLE_HARNESS
 
-  let { deployer, rng, adminAccount, comptroller, reserveRegistry } = await getNamedAccounts()
+  let { deployer, rng, adminAccount, reserve } = await getNamedAccounts()
   const chainId = parseInt(await getChainId(), 10)
   const isLocal = [1, 3, 4, 42, 106, 111].indexOf(chainId) == -1
   // 31337 is unit testing, 1337 is for coverage
@@ -59,6 +59,7 @@ module.exports = async buidler => {
     // Display Contract Addresses
     debug("\n  VELAS network deployments;\n")
     debug("  - RNGService:       ", rng)
+    if (!rng) return -1
   }
 
   if (isLocal) {
@@ -115,26 +116,26 @@ module.exports = async buidler => {
     debug("  - rewardPool:       ", rewardPoolResult.address)
   }
 
-  let comptrollerAddress = comptroller
+  // let comptrollerAddress = comptroller
   // if not set by named config
-  if (!comptrollerAddress) {
-    const contract = isTestEnvironment ? "ComptrollerHarness" : "Comptroller"
-    const comptrollerResult = await deploy("Comptroller", {
-      contract,
-      from: deployer,
-      skipIfAlreadyDeployed: true
-    })
-    comptrollerAddress = comptrollerResult.address
-    const comptrollerContract = await buidler.ethers.getContractAt("Comptroller", comptrollerResult.address, signer)
-    if (adminAccount !== deployer) {
-      await comptrollerContract.transferOwnership(adminAccount)
-    }
-    debug(`  Created new comptroller ${comptrollerAddress}`)
-  } else {
-    debug(`  Using existing comptroller ${comptrollerAddress}`)
-  }
+  // if (!comptrollerAddress) {
+  //   const contract = isTestEnvironment ? "ComptrollerHarness" : "Comptroller"
+  //   const comptrollerResult = await deploy("Comptroller", {
+  //     contract,
+  //     from: deployer,
+  //     skipIfAlreadyDeployed: true
+  //   })
+  //   comptrollerAddress = comptrollerResult.address
+  //   const comptrollerContract = await buidler.ethers.getContractAt("Comptroller", comptrollerResult.address, signer)
+  //   if (adminAccount !== deployer) {
+  //     await comptrollerContract.transferOwnership(adminAccount)
+  //   }
+  //   debug(`  Created new comptroller ${comptrollerAddress}`)
+  // } else {
+  //   debug(`  Using existing comptroller ${comptrollerAddress}`)
+  // }
 
-  if (!reserveRegistry) {
+  if (!reserve) {
     // if not set by named config
     const reserveResult = await deploy("Reserve", {
       from: deployer,
@@ -162,92 +163,92 @@ module.exports = async buidler => {
       await reserveRegistryContract.transferOwnership(adminAccount)
     }
 
-    reserveRegistry = reserveRegistryResult.address
-    debug(`  Created new reserve registry ${reserveRegistry}`)
+    reserve = reserveRegistryResult.address
+    debug(`  Created new reserve registry ${reserve}`)
   } else {
-    debug(`  Using existing reserve registry ${reserveRegistry}`)
+    debug(`  Using existing reserve registry ${reserve}`)
   }
 
-  debug("\n  Deploying ControlledTokenProxyFactory...")
-  const controlledTokenProxyFactoryResult = await deploy("ControlledTokenProxyFactory", {
-    from: deployer,
-    skipIfAlreadyDeployed: true
-  })
+  // debug("\n  Deploying ControlledTokenProxyFactory...")
+  // const controlledTokenProxyFactoryResult = await deploy("ControlledTokenProxyFactory", {
+  //   from: deployer,
+  //   skipIfAlreadyDeployed: true
+  // })
 
-  debug("\n  Deploying TicketProxyFactory...")
-  const ticketProxyFactoryResult = await deploy("TicketProxyFactory", {
-    from: deployer,
-    skipIfAlreadyDeployed: true
-  })
+  // debug("\n  Deploying TicketProxyFactory...")
+  // const ticketProxyFactoryResult = await deploy("TicketProxyFactory", {
+  //   from: deployer,
+  //   skipIfAlreadyDeployed: true
+  // })
 
-  debug("\n  Deploying SyxPrizePoolProxyFactory...")
-  const syxPrizePoolProxyFactoryResult = await deploy("SyxPrizePoolProxyFactory", {
-    from: deployer,
-    skipIfAlreadyDeployed: true
-  })
+  // debug("\n  Deploying SyxPrizePoolProxyFactory...")
+  // const syxPrizePoolProxyFactoryResult = await deploy("SyxPrizePoolProxyFactory", {
+  //   from: deployer,
+  //   skipIfAlreadyDeployed: true
+  // })
 
-  debug("\n  Deploying SponsorProxyFactory...")
-  const sponsorProxyFactoryResult = await deploy("SponsorProxyFactory", {
-    from: deployer,
-    skipIfAlreadyDeployed: true
-  })
+  // debug("\n  Deploying SponsorProxyFactory...")
+  // const sponsorProxyFactoryResult = await deploy("SponsorProxyFactory", {
+  //   from: deployer,
+  //   skipIfAlreadyDeployed: true
+  // })
 
-  debug("\n  Deploying ControlledTokenBuilder...")
-  const controlledTokenBuilderResult = await deploy("ControlledTokenBuilder", {
-    args: [controlledTokenProxyFactoryResult.address, ticketProxyFactoryResult.address],
-    from: deployer,
-    skipIfAlreadyDeployed: true
-  })
+  // debug("\n  Deploying ControlledTokenBuilder...")
+  // const controlledTokenBuilderResult = await deploy("ControlledTokenBuilder", {
+  //   args: [controlledTokenProxyFactoryResult.address, ticketProxyFactoryResult.address],
+  //   from: deployer,
+  //   skipIfAlreadyDeployed: true
+  // })
 
-  debug("\n  Deploying SyxSingleWinnerFactory...")
-  let syxSingleWinnerFactoryResult
-  if (isTestEnvironment && !harnessDisabled) {
-    debug("\n  Deploying SyxSingleWinnerHarnessProxyFactory...")
-    syxSingleWinnerFactoryResult = await deploy("SyxSingleWinnerFactory", {
-      contract: "SyxSingleWinnerHarnessProxyFactory",
-      from: deployer,
-      skipIfAlreadyDeployed: true
-    })
-  } else {
-    syxSingleWinnerFactoryResult = await deploy("SyxSingleWinnerFactory", {
-      from: deployer,
-      skipIfAlreadyDeployed: true
-    })
-  }
+  // debug("\n  Deploying SyxSingleWinnerFactory...")
+  // let syxSingleWinnerFactoryResult
+  // if (isTestEnvironment && !harnessDisabled) {
+  //   debug("\n  Deploying SyxSingleWinnerHarnessProxyFactory...")
+  //   syxSingleWinnerFactoryResult = await deploy("SyxSingleWinnerFactory", {
+  //     contract: "SyxSingleWinnerHarnessProxyFactory",
+  //     from: deployer,
+  //     skipIfAlreadyDeployed: true
+  //   })
+  // } else {
+  //   syxSingleWinnerFactoryResult = await deploy("SyxSingleWinnerFactory", {
+  //     from: deployer,
+  //     skipIfAlreadyDeployed: true
+  //   })
+  // }
 
-  debug("\n  Deploying SyxSingleWinnerBuilder...")
-  const syxSingleWinnerBuilderResult = await deploy("SyxSingleWinnerBuilder", {
-    args: [
-      syxSingleWinnerFactoryResult.address,
-      controlledTokenProxyFactoryResult.address,
-      ticketProxyFactoryResult.address
-    ],
-    from: deployer,
-    skipIfAlreadyDeployed: true
-  })
+  // debug("\n  Deploying SyxSingleWinnerBuilder...")
+  // const syxSingleWinnerBuilderResult = await deploy("SyxSingleWinnerBuilder", {
+  //   args: [
+  //     syxSingleWinnerFactoryResult.address,
+  //     controlledTokenProxyFactoryResult.address,
+  //     ticketProxyFactoryResult.address
+  //   ],
+  //   from: deployer,
+  //   skipIfAlreadyDeployed: true
+  // })
 
-  debug("\n  Deploying SyxPrizePoolBuilder...")
-  const syxPrizePoolBuilderResult = await deploy("SyxPrizePoolBuilder", {
-    args: [
-      reserveRegistry,
-      syxPrizePoolProxyFactoryResult.address,
-      syxSingleWinnerBuilderResult.address,
-      sponsorProxyFactoryResult.address
-    ],
-    from: deployer,
-    skipIfAlreadyDeployed: true
-  })
+  // debug("\n  Deploying SyxPrizePoolBuilder...")
+  // const syxPrizePoolBuilderResult = await deploy("SyxPrizePoolBuilder", {
+  //   args: [
+  //     reserve,
+  //     syxPrizePoolProxyFactoryResult.address,
+  //     syxSingleWinnerBuilderResult.address,
+  //     sponsorProxyFactoryResult.address
+  //   ],
+  //   from: deployer,
+  //   skipIfAlreadyDeployed: true
+  // })
 
   // Display Contract Addresses
   debug("\n  Contract Deployments Complete!\n")
-  debug("  - TicketProxyFactory:             ", ticketProxyFactoryResult.address)
-  debug("  - Reserve:                        ", reserveRegistry)
-  debug("  - ControlledTokenProxyFactory:    ", controlledTokenProxyFactoryResult.address)
-  debug("  - SyxSingleWinnerFactory: ", syxSingleWinnerFactoryResult.address)
-  debug("  - SponsorProxyFactory: ", sponsorProxyFactoryResult.address)
-  debug("  - ControlledTokenBuilder:         ", controlledTokenBuilderResult.address)
-  debug("  - SyxSingleWinnerBuilder:      ", syxSingleWinnerBuilderResult.address)
-  debug("  - SyxPrizePoolBuilder:          ", syxPrizePoolBuilderResult.address)
+  // debug("  - TicketProxyFactory:             ", ticketProxyFactoryResult.address)
+  debug("  - Reserve:                        ", reserve)
+  // debug("  - ControlledTokenProxyFactory:    ", controlledTokenProxyFactoryResult.address)
+  // debug("  - SyxSingleWinnerFactory: ", syxSingleWinnerFactoryResult.address)
+  // debug("  - SponsorProxyFactory: ", sponsorProxyFactoryResult.address)
+  // debug("  - ControlledTokenBuilder:         ", controlledTokenBuilderResult.address)
+  // debug("  - SyxSingleWinnerBuilder:      ", syxSingleWinnerBuilderResult.address)
+  // debug("  - SyxPrizePoolBuilder:          ", syxPrizePoolBuilderResult.address)
 
   // if (permitAndDepositDaiResult) {
   //   debug('  - PermitAndDepositDai:            ', permitAndDepositDaiResult.address)

@@ -5,7 +5,11 @@ const { TASK_COMPILE_GET_COMPILER_INPUT } = require("@nomiclabs/buidler/builtin-
 const RNGBlockhashRopsten = require("@symblox/pvlx-rng-contracts/deployments/ropsten/RNGBlockhash.json")
 const RNGBlockhashRinkeby = require("@symblox/pvlx-rng-contracts/deployments/rinkeby/RNGBlockhash.json")
 const RNGBlockhashKovan = require("@symblox/pvlx-rng-contracts/deployments/kovan/RNGBlockhash.json")
-const RNGBlockhashVlxTest = require("@symblox/pvlx-rng-contracts/deployments/vlxtest/RNGBlockhash.json")
+const RNGBlockhashVlxtest = require("@symblox/pvlx-rng-contracts/deployments/vlxtest/RNGBlockhash.json")
+const RNGBlockhashVlxmain = require("@symblox/pvlx-rng-contracts/deployments/vlxmain/RNGBlockhash.json")
+
+const ReserveVlxtest = require("./deployments/vlxtest/Reserve.json")
+const ReserveVlxmain = require("./deployments/vlxmain/Reserve.json")
 
 usePlugin("@nomiclabs/buidler-waffle")
 usePlugin("buidler-gas-reporter")
@@ -72,14 +76,37 @@ const config = {
     comptroller: {
       1: "0x4027dE966127af5F015Ea1cfd6293a3583892668"
     },
-    reserveRegistry: {
-      1: "0x3e8b9901dBFE766d3FE44B36c180A1bca2B9A295"
+    reserve: {
+      1: "0x3e8b9901dBFE766d3FE44B36c180A1bca2B9A295",
+      106: ReserveVlxmain.address,
+      111: ReserveVlxtest.address
     },
     rng: {
-      111: RNGBlockhashVlxTest.address,
+      106: RNGBlockhashVlxmain.address,
+      111: RNGBlockhashVlxtest.address,
       42: RNGBlockhashKovan.address,
       4: RNGBlockhashRinkeby.address,
       3: RNGBlockhashRopsten.address
+    },
+    syx: {
+      106: "0x01Db6ACFA20562Ba835aE9F5085859580A0b1386",
+      111: "0x28a6312D786e9d7a78637dD137AbeF5332F3b2Aa"
+    },
+    svlx: {
+      106: "0xb800D28E0dbb6C3D66c1d386c0ac37C187211eAE",
+      111: "0x6a63011a41Df162921E2eDF7f10fabb7C93F3FB0"
+    },
+    miningPool: {
+      106: "0x7bD57dCA1C703E068F4A0A3Bc506612372eF7dC6",
+      111: "0x3FBaf23119a999336bb9bB0744bcC6f60540B4B4"
+    },
+    rewardPool: {
+      106: "0x9fCdD9eb40CaC90A5C385C9Ef37b48E847B178a3",
+      111: "0x2c140E4561ef42c20B60E600CA52B86147858AC5"
+    },
+    rewardPoolId: {
+      106: "0",
+      111: "0"
     },
     adminAccount: {
       42: testnetAdmin,

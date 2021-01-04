@@ -1,35 +1,20 @@
 const buidler = require("@nomiclabs/buidler")
 
-let addresses = {
-  106: {
-    syx: "0x01Db6ACFA20562Ba835aE9F5085859580A0b1386",
-    svlx: "0xb800D28E0dbb6C3D66c1d386c0ac37C187211eAE",
-    rewardPoolId: 0, //vlxSyx reward pool id
-    rngService: "0xc7c6Dd702dc22165f241fF75f347887fBAa7c9c2",
-    registry: ""
-  },
-  111: {
-    syx: "0x28a6312D786e9d7a78637dD137AbeF5332F3b2Aa",
-    svlx: "0x6a63011a41Df162921E2eDF7f10fabb7C93F3FB0",
-    bpt: "0x3FBaf23119a999336bb9bB0744bcC6f60540B4B4", //vlxSyx reward pool bpt token
-    rewardPool: "0x2c140E4561ef42c20B60E600CA52B86147858AC5",
-    rewardPoolId: 0, //vlxSyx reward pool id
-    rngService: "0xB4fb2B1FBB995bBb9A2c8481c61c5Be1c63e081b",
-    registry: "0xb7f78917e52D05346c7fbD82ea8006bF407886f4"
-  },
-  1337: {
-    rewardPoolId: 0
-  },
-  31337: {
-    rewardPoolId: 0
-  }
-}
-
 const setup = async () => {
   const { ethers, getChainId, deployments, upgrades } = buidler
   const toWei = ethers.utils.parseEther
 
-  let { deployer, rng, adminAccount, comptroller, reserveRegistry } = await getNamedAccounts()
+  let {
+    deployer,
+    rng,
+    adminAccount,
+    reserve,
+    syx,
+    svlx,
+    miningPool,
+    rewardPool,
+    rewardPoolId
+  } = await getNamedAccounts()
 
   const chainId = parseInt(await getChainId(), 10)
   const isTestEnvironment = chainId === 31337 || chainId === 1337
@@ -37,34 +22,36 @@ const setup = async () => {
   const [signer] = await ethers.getSigners()
   console.log(`Using wallet address: ${signer._address}`)
 
-  let prizePeriodStart = 1609675200
+  let prizePeriodStart = 1609761600
   let prizePeriodSeconds = 60
 
   if (isTestEnvironment) {
     registry = await deployments.get("Reserve")
-    addresses[chainId].registry = registry.address
+    reserve = registry.address
 
     rngService = await deployments.get("RNGServiceMock")
-    addresses[chainId].rngService = rngService.address
+    rng = rngService.address
 
-    svlx = await deployments.get("SVLX")
-    addresses[chainId].svlx = svlx.address
+    const mockSvlx = await deployments.get("SVLX")
+    svlx = mockSvlx.address
 
-    syx = await deployments.get("mockToken")
-    addresses[chainId].syx = syx.address
+    const mockSyx = await deployments.get("mockToken")
+    syx = mockSyx.address
 
-    const bpt = await deployments.get("mockBpt")
-    addresses[chainId].bpt = bpt.address
-    const rewardPool = await deployments.get("mockRewardPool")
-    addresses[chainId].rewardPool = rewardPool.address
+    const mockBpt = await deployments.get("mockBpt")
+    miningPool = mockBpt.address
+    const mockRewardPool = await deployments.get("mockRewardPool")
+    rewardPool = mockRewardPool.address
+
+    rewardPoolId = 0
 
     prizePeriodStart = 10
     prizePeriodSeconds = 10
   }
 
-  syxSingleWinnerConfig = {
+  const syxSingleWinnerConfig = {
     proxyAdmin: ethers.constants.AddressZero,
-    rngService: addresses[chainId].rngService,
+    rngService: rng,
     prizePeriodStart: prizePeriodStart,
     prizePeriodSeconds: prizePeriodSeconds,
     ticketName: "pooled Velas",
@@ -73,13 +60,13 @@ const setup = async () => {
     sponsorshipSymbol: "SPON",
     ticketCreditLimitMantissa: toWei("0.1"),
     ticketCreditRateMantissa: toWei("0.001"),
-    externalERC20Awards: [addresses[chainId].syx]
+    externalERC20Awards: [syx]
   }
 
   console.log({ syxSingleWinnerConfig })
 
-  syxPrizePoolConfig = {
-    token: addresses[chainId].svlx,
+  const syxPrizePoolConfig = {
+    token: svlx,
     maxExitFeeMantissa: toWei("0.5"),
     maxTimelockDuration: 1000
   }
@@ -95,7 +82,7 @@ const setup = async () => {
   let initArgs = []
 
   initArgs = [
-    addresses[chainId].registry,
+    reserve,
     [],
     syxPrizePoolConfig.maxExitFeeMantissa.toString(),
     syxPrizePoolConfig.maxTimelockDuration
@@ -165,7 +152,7 @@ const setup = async () => {
     syxPrizePool.address,
     pVlx.address,
     sponsorship.address,
-    addresses[chainId].rngService,
+    syxSingleWinnerConfig.rngService,
     syxSingleWinnerConfig.externalERC20Awards
   ]
   console.log({ initArgs })
@@ -186,7 +173,7 @@ const setup = async () => {
   //     syxPrizePool.address,
   //     pVlx.address,
   //     sponsorship.address,
-  //     addresses[chainId].rngService,
+  //     rng,
   //     syxSingleWinnerConfig.externalERC20Awards
   //   ]
   // })
@@ -209,13 +196,7 @@ const setup = async () => {
 
   // Deploy Sponsor
 
-  initArgs = [
-    syxPrizePool.address,
-    pVlx.address,
-    addresses[chainId].bpt,
-    addresses[chainId].rewardPool,
-    addresses[chainId].rewardPoolId
-  ]
+  initArgs = [syxPrizePool.address, pVlxAddress, miningPool, rewardPool, rewardPoolId]
   console.log({ initArgs })
 
   const SponsorFactory = await ethers.getContractFactory("Sponsor")
@@ -229,9 +210,9 @@ const setup = async () => {
   //   args: [
   //     syxPrizePool.address,
   //     pVlx.address,
-  //     addresses[chainId].bpt,
-  //     addresses[chainId].rewardPool,
-  //     addresses[chainId].rewardPoolId
+  //     miningPool,
+  //     rewardPool,
+  //     rewardPoolId
   //   ]
   // })
 
