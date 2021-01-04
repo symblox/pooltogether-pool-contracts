@@ -1,6 +1,6 @@
 const { ethers, upgrades } = require("@nomiclabs/buidler")
 
-const syxPrizePoolAddress = "0x8fB2446c80762ca8C2516b1AC40727839C44AC53"
+const syxPrizePoolAddress = "0xD55AD67b44cfDd6C6443A6f0305187194F491325"
 
 const main = async () => {
   const SyxPrizePoolFactory = await ethers.getContractFactory("SyxPrizePool_V2")
