@@ -1,6 +1,6 @@
 {
   "name": "@symblox/pvlx-contracts",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "description": "Pooled VELAS Token Smart Contracts",
   "main": "index.js",
   "bin": {
@@ -34,6 +34,7 @@
     "setup": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/setup-syx.js --network",
     "createSyx": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/createSyxPool.js --network",
     "upgradeSyx": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/upgradeSyxPool.js --network",
+    "upgradeSponsor": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/upgradeSponsor.js --network",
     "createSingleWinner": "USE_BUIDLER_EVM_ACCOUNTS=$BUIDLER_EVM_ACCOUNTS buidler run scripts/createSyxSingleWinner.js --network",
     "npm:publish": "npm publish --access public"
   },

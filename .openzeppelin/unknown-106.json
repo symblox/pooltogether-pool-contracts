@@ -840,6 +840,97 @@
           }
         }
       }
+    },
+    "e527eb64aa4621dbdf6661b001ef573aa58a024c033848e38caa7056135a213e": {
+      "address": "0x9E7345fFa40A10D5CA90E922b6FCA7Ac9e522F54",
+      "txHash": "0xe30f6abf4f4044e3ea568830bb9cdfd347ad841e86d80fac7d1aeafc112e5bac",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol:24"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol:29"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin/contracts-upgradeable/GSN/ContextUpgradeable.sol:31"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:20"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:74"
+          },
+          {
+            "contract": "Sponsor",
+            "label": "ticket",
+            "type": "t_address",
+            "src": "contracts/sponsor/Sponsor.sol:16"
+          },
+          {
+            "contract": "Sponsor",
+            "label": "prizePool",
+            "type": "t_contract(ISyxPrizePool)18717",
+            "src": "contracts/sponsor/Sponsor.sol:17"
+          },
+          {
+            "contract": "Sponsor",
+            "label": "rewardManager",
+            "type": "t_contract(IRewardManager)18664",
+            "src": "contracts/sponsor/Sponsor.sol:18"
+          },
+          {
+            "contract": "Sponsor",
+            "label": "rewardPoolId",
+            "type": "t_uint8",
+            "src": "contracts/sponsor/Sponsor.sol:19"
+          },
+          {
+            "contract": "Sponsor",
+            "label": "lpToken",
+            "type": "t_address",
+            "src": "contracts/sponsor/Sponsor.sol:20"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_contract(ISyxPrizePool)18717": {
+            "label": "contract ISyxPrizePool"
+          },
+          "t_contract(IRewardManager)18664": {
+            "label": "contract IRewardManager"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
     }
   },
   "admin": {

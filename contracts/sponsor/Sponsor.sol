@@ -56,7 +56,9 @@ contract Sponsor is OwnableUpgradeable {
   }
 
   function earned() external view returns (uint256) {
-    return rewardManager.pendingSyx(uint256(rewardPoolId), address(this));
+    return
+      rewardManager.pendingSyx(uint256(rewardPoolId), address(this)) +
+      IERC20Upgradeable(rewardManager.syx()).balanceOf(address(prizePool));
   }
 
   function claimRewards() external {
